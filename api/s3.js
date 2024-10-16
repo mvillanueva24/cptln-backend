@@ -38,11 +38,11 @@ export async function getItem(filename) {
     return await s3.send(command)
 }
 
-export async function getItem(filename) {
-    const command = new GetObjectCommand({
-        Bucket: AWS_BUCKET_NAME,
-        Key: filename
-    })
-    const result = await s3.send(command)
-    result.Body.pipe(fs.createWriteStream(`./images/${filename}.jpg`))
-}
+// export async function getItem(filename) {
+//     const command = new GetObjectCommand({
+//         Bucket: AWS_BUCKET_NAME,
+//         Key: filename
+//     })
+//     const result = await s3.send(command)
+//     result.Body.pipe(fs.createWriteStream(`./images/${filename}.jpg`))
+// }
