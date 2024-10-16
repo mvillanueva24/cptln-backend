@@ -16,9 +16,15 @@ conectDB()
 //     tempFileDir: './uploads'
 // }))
 
-// app.get('/', (req, res)=>{
-//     res.json({'message':'welcome to s3'})
-// })
+app.get('/', (req, res)=>{
+    console.log('Respuesta en consola')
+    res.json({'message':'Conectado con la API'})
+})
+
+app.post('/', (req, res)=>{
+    console.log('Solicitandodatos en consola')
+    res.json({'message':'Mandando datos a la API'})
+})
 
 // app.post('/files', async (req, res)=>{
 //     await upload(req.files.file)
