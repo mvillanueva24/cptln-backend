@@ -7,36 +7,36 @@ import fileUpload from 'express-fileupload'
 const app = express()
 conectDB()
 
-app.use(cors({
-    origin:'*'
-}))
+// app.use(cors({
+//     origin:'*'
+// }))
 
-app.use(fileUpload({
-    useTempFiles: true,
-    tempFileDir: './uploads'
-}))
+// app.use(fileUpload({
+//     useTempFiles: true,
+//     tempFileDir: './uploads'
+// }))
 
-app.get('/', (req, res)=>{
-    res.json({'message':'welcome to s3'})
-})
+// app.get('/', (req, res)=>{
+//     res.json({'message':'welcome to s3'})
+// })
 
-app.post('/files', async (req, res)=>{
-    await upload(req.files.file)
-    console.log(req.files.file)
-    res.json({'message':'welcome to s3'})
-})
+// app.post('/files', async (req, res)=>{
+//     await upload(req.files.file)
+//     console.log(req.files.file)
+//     res.json({'message':'welcome to s3'})
+// })
 
-app.get('/files', async (req, res)=>{
-    await getItems()
-    res.json({'message':'welcome to s3'})
-})
+// app.get('/files', async (req, res)=>{
+//     await getItems()
+//     res.json({'message':'welcome to s3'})
+// })
 
-app.get('/files/:filename', async(req, res)=> {
-    console.log(req.params.filename)
-    const result = await getItem(req.params.filename)
-    res.status(200).json(result.$metadata)
-    console.log(result.$metadata)
-})
+// app.get('/files/:filename', async(req, res)=> {
+//     console.log(req.params.filename)
+//     const result = await getItem(req.params.filename)
+//     res.status(200).json(result.$metadata)
+//     console.log(result.$metadata)
+// })
 
 app.listen(3000)
 export default app
