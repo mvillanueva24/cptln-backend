@@ -37,13 +37,13 @@ export const register = async (req, res) => {
 }
 
 export const login = async (req, res) => {
-    const { correo, contraseña } = req.body;
+    const { correo, password } = req.body;
     try {
         const userFound = await User.findOne({ correo });
         if (!userFound) {
             return res.status(404).json({ 'message': 'Usuario no encontrado' });
         }
-        const isMatch = await bcrypt.compare(contraseña, userFound.contraseña);
+        const isMatch = await bcrypt.compare(password, userFound.contraseña);
         if (!isMatch) {
             return res.status(400).json({ 'message': 'Credenciales incorrectas' });
         }
