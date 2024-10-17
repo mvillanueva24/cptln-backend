@@ -4,8 +4,8 @@ import { devocionales, devocionalHoy, crearDevocional, editarDevocional } from '
 const router = Router()
 
 router.get('/devocionales',devocionales)
-router.get('/devocionales',devocionalHoy)
+router.get('/devocionales/hoy',devocionalHoy)
 router.post('/devocionales',crearDevocional)
-router.post('/devocionales',editarDevocional)
+router.post('/devocionales/:id',editarDevocional)
 
 export default router

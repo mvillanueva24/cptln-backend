@@ -23,11 +23,11 @@ export const devocionalHoy = async (req, res) => {
             $lt: finHoy
         }
     })
-    if (!devocional) return res.status(400).json({
-        message: 'No se encontro el devocional de hoy'
+    if (devocional.length == 0) return res.status(400).json({
+        "Mensaje de la API": 'No se encontro el devocional de hoy'
     })
     res.status(200).json({
-        message: devocional
+        "API:": devocional
     })
     return devocional
 }

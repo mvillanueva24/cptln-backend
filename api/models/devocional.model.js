@@ -5,16 +5,19 @@ const devocionalSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
+    parrafo: {
+        type: String,
+        required: true,
+    },
+    versiculo: {
+        type: String,
+        required: true
+    },
     audioURL:{
         type: String,
     },
     imagen: {
         type: String,
-        required: true,
-    },
-    parrafo: {
-        type: String,
-        required: true,
     },
     fecha: {
         type: String,

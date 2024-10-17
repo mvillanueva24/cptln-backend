@@ -1,7 +1,15 @@
 import { S3Client, PutObjectCommand, ListObjectsCommand, GetObjectCommand } from '@aws-sdk/client-s3'
-import { AWS_BUCKET_REGION, AWS_BUCKET_NAME, AWS_PUBLIC_KEY, AWS_SECRET_KEY } from './config.js'
+import { config } from 'dotenv'
 import fs from 'fs'
 
+// Configuracion de Variables de entorno
+config()
+const AWS_BUCKET_REGION=process.env.AWS_BUCKET_REGION
+const AWS_PUBLIC_KEY=process.env.AWS_PUBLIC_KEY
+const AWS_BUCKET_NAME=process.env.AWS_BUCKET_NAME
+const AWS_SECRET_KEY=process.env.AWS_SECRET_KEY
+
+// Comenzar instancia de S3
 const s3 = new S3Client({
     region: AWS_BUCKET_REGION,
     credentials: {
@@ -10,6 +18,7 @@ const s3 = new S3Client({
     }
 })
 
+//Subir archivo a S3
 export async function upload(file) {
     const stream = fs.createReadStream(file.tempFilePath)
     const UploadParams = {
