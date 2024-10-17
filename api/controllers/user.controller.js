@@ -43,7 +43,6 @@ export const login = async (req, res) => {
         if (!userFound) {
             return res.status(404).json({ 'message': 'Usuario no encontrado' });
         }
-        
         const isMatch = await bcrypt.compare(contraseña, userFound.contraseña);
         if (!isMatch) {
             return res.status(400).json({ 'message': 'Credenciales incorrectas' });
