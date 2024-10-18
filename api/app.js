@@ -1,6 +1,8 @@
 import express from 'express'
 import authRoutes from './routes/auth.routes.js'
 import devocionalRoutes from './routes/devocional.routes.js'
+import eventosRoutes from './routes/eventos.routes.js'
+import noticiasRoutes from './routes/noticias.routes.js'
 import cookieParser from 'cookie-parser'
 import fileUpload from 'express-fileupload'
 import cors from 'cors'
@@ -24,6 +26,7 @@ app.use(cookieParser())
 //Rutas
 app.use('/api', authRoutes)
 app.use('/api', devocionalRoutes)
-
+app.use('/api', eventosRoutes)
+app.use('/api', noticiasRoutes)
 
 export default app

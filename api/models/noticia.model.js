@@ -5,25 +5,14 @@ const NoticiaSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
-    autor:{
-        type: String,
-        required: true,
-        trim: true,
+    cuerpo: {
+        type: String
     },
-    category: {
-        type: String,
-        required: true,
-        trim: true,
+    fecha: {
+        type: String
     },
-    stock: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    observation: {
-        type: String,
-        required: true,
-        trim: true
+    imagenes:{
+        type: [String]
     }
 },{
     timestamps: true
