@@ -1,4 +1,5 @@
-import { S3Client, PutObjectCommand, ListObjectsCommand, GetObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, PutObjectCommand, GetObjectCommand} from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { config } from 'dotenv'
 import fs from 'fs'
 
@@ -18,34 +19,56 @@ const s3 = new S3Client({
     }
 })
 
-//Subir archivo a S3
-export async function upload(file) {
+//Subir archivos a S3
+export async function upload(file, ruta, nombre) {
     const stream = fs.createReadStream(file.tempFilePath)
     const UploadParams = {
         Bucket: AWS_BUCKET_NAME,
-        Key: file.name,
+        Key: ruta+nombre,
         Body: stream
     }
     const command = new PutObjectCommand(UploadParams)
     const result = await s3.send(command)
-    console.log(result);
+    fs.unlink(file.tempFilePath, (err) => {
+        if (err) {
+            console.error(`Error al eliminar el archivo temporal: ${err}`);
+        } else {
+            console.log(`Archivo temporal ${file.tempFilePath} eliminado exitosamente.`);
+        }
+    });
+    return result
 }
 
-export async function getItems() {
-    const command = new ListObjectsCommand({
-        Bucket: AWS_BUCKET_NAME
-    })
-    const result = await s3.send(command)
-    console.log(result)
-}
 
-export async function getItem(filename) {
+// Generar link prefirmado de un archivo
+export const getFileURL = async (ruta, filename) =>{
     const command = new GetObjectCommand({
         Bucket: AWS_BUCKET_NAME,
-        Key: filename
+        Key: ruta+filename
     })
-    return await s3.send(command)
-}
+    return await getSignedUrl(s3, command, { expiresIn: 3600})
+} 
+
+export default s3
+
+// //Subir archivo a S3
+
+
+// export async function getItems() {
+//     const command = new ListObjectsCommand({
+//         Bucket: AWS_BUCKET_NAME
+//     })
+//     const result = await s3.send(command)
+//     console.log(result)
+// }
+
+// export async function getItem(filename) {
+//     const command = new GetObjectCommand({
+//         Bucket: AWS_BUCKET_NAME,
+//         Key: filename
+//     })
+//     return await s3.send(command)
+// }
 
 // export async function getItem(filename) {
 //     const command = new GetObjectCommand({

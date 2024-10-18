@@ -13,16 +13,15 @@ const devocionalSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    fecha: {
+        type: String,
+    },
     audioURL:{
         type: String,
     },
-    imagen: {
+    imagenURL: {
         type: String,
     },
-    fecha: {
-        type: String,
-        required: true
-    }
 },{
     timestamps: true
 })
