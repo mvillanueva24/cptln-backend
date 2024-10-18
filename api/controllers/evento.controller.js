@@ -16,7 +16,22 @@ export const buscarEvento = async(req, res) => {
 }
 
 export const crearEvento = async(req, res) => {
-    console.log(``);
+    const { titulo, cuerpo, fecha, ubicacion } = req.body
+    try {
+        const newEvent = new Evento({
+            titulo: titulo,
+            cuerpo: cuerpo,
+            fecha: fecha,
+            ubicacion: ubicacion
+        })
+        await newEvent.save()
+        return res.status(200).json({
+            API:'Evento creado exitosamente'
+        })
+    } catch (error) {
+        console.log(`API: `+error);
+        res.status(400).send('API: No se logro crear un evento')
+    }
 }
 
 export const editarEvento = async(req, res) => {
