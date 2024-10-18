@@ -75,6 +75,7 @@ export const test = (req, res) => {
 // Crear devocional
 export const crearDevocional = async (req, res) => {
     console.log(req.files);
+    console.log(req.body);
     const { titulo, parrafo, versiculo, fecha } = req.body
     let filenameImage = ''
     let filenameAudio = ''
