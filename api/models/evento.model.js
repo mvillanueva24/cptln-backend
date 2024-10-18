@@ -16,6 +16,9 @@ const eventoSchema = new mongoose.Schema({
     fecha: {
         type: String,
     },
+    hora:{
+        type: String,
+    },
     estado: {
         type: Boolean,
         default: true

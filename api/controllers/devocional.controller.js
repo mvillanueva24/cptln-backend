@@ -179,12 +179,12 @@ export const editarDevocional = async (req, res) => {
 export const cambiarEstadoDevocional = async (req, res) => {
     const { id } = req.body
     try {
-        const DevocionlFind = await Devocional.findById(id)
-        if(!DevocionlFind) return res.status(404).json({
+        const DevocionalFound = await Devocional.findById(id)
+        if(!DevocionalFound) return res.status(404).json({
             'API: ': 'Devocional no encontrado'
         })
         const updateData = {
-            estado: !Devocional.estado
+            estado: !DevocionalFound.estado
         }
         await Devocional.findByIdAndUpdate(
             id,
