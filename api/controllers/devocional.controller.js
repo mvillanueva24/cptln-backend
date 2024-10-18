@@ -76,18 +76,18 @@ export const test = (req, res) => {
 export const crearDevocional = async (req, res) => {
     console.log(req.files);
     const { titulo, parrafo, versiculo, fecha } = req.body
-    const audio = req.files.audio
-    const imagen = req.files.imagen
     let filenameImage = ''
     let filenameAudio = ''
     let mensaje = ``
-    if (imagen) {
+    if (req.files.audio) {
+        const imagen = req.files.imagen
         const today = new Date();
         filenameImage += `${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}_devocional_img.${imagen.name.split('.').pop()}`
         const response = await upload(imagen, `devocionales/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}/`, filenameImage)
         mensaje += response+" - "
     }
-    if (audio) {
+    if (req.files.imagen) {
+        const audio = req.files.audio
         const today = new Date();
         filenameAudio += `${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}_devocional_audio.mp3`
         const response = await upload(audio, `devocionales/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}/`, filenameAudio)
