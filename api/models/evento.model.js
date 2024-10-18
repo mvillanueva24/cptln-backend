@@ -1,25 +1,19 @@
 import mongoose from "mongoose";
-const devocionalSchema = new mongoose.Schema({
+const eventoSchema = new mongoose.Schema({
     titulo: {
         type: String,
         required: true,
         trim: true,
     },
-    parrafo: {
+    cuerpo: {
         type: String,
         required: true,
     },
-    versiculo: {
+    ubicacion: {
         type: String,
         required: true
     },
     fecha: {
-        type: String,
-    },
-    audioURL:{
-        type: String,
-    },
-    imagenURL: {
         type: String,
     },
     estado: {
@@ -30,4 +24,4 @@ const devocionalSchema = new mongoose.Schema({
     timestamps: true
 })
 
-export default mongoose.model('Devocional', devocionalSchema)
+export default mongoose.model('Evento', eventoSchema)

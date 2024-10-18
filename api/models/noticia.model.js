@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
-const BookSchema = new mongoose.Schema({
-    title: {
+const NoticiaSchema = new mongoose.Schema({
+    titulo: {
         type: String,
         required: true,
         trim: true,
     },
-    author:{
+    autor:{
         type: String,
         required: true,
         trim: true,
