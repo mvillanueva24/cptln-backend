@@ -11,11 +11,18 @@ const NoticiaSchema = new mongoose.Schema({
     fecha: {
         type: String
     },
+    portada: {
+        type: String
+    },
     imagenes:{
         type: [String]
+    },
+    estado: {
+        type: Boolean,
+        default: true
     }
 },{
     timestamps: true
 })
 
-export default mongoose.model('Book', BookSchema)
+export default mongoose.model('Noticia', NoticiaSchema)

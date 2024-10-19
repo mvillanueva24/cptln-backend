@@ -41,6 +41,15 @@ export async function upload(file, ruta, nombre) {
 
 
 // Generar link prefirmado de un archivo
+// export const getFileURL = async (ruta, filename) =>{
+//     const command = new GetObjectCommand({
+//         Bucket: AWS_BUCKET_NAME,
+//         Key: ruta+filename
+//     })
+//     return await getSignedUrl(s3, command, { expiresIn: 3600})
+// } 
+
+
 export const getFileURL = async (ruta, filename) =>{
     const command = new GetObjectCommand({
         Bucket: AWS_BUCKET_NAME,
@@ -48,6 +57,7 @@ export const getFileURL = async (ruta, filename) =>{
     })
     return await getSignedUrl(s3, command, { expiresIn: 3600})
 } 
+
 
 export default s3
 
