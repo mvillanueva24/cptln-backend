@@ -53,26 +53,30 @@ export const devocionalFound = async (req, res) => {
 // Crear devocional
 export const crearDevocional = async (req, res) => {
     const { titulo, parrafo, versiculo, fecha } = req.body
-    let filenameImage = ''
-    let filenameAudio = ''
+    let routeImagen = ''
+    let routeAudio = ''
     if (req.files.imagen) {
         const imagen = req.files.imagen
         const today = new Date();
-        filenameImage += `${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}_devocional_img.${imagen.name.split('.').pop()}`
-        await upload(imagen, `devocionales/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}/`+filenameImage)
+        routeImagen += `devocionales/
+        ${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}/
+        ${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}_devocional_img.${imagen.name.split('.').pop()}`
+        await upload(imagen, routeImagen)
     }
     if (req.files.audio) {
         const audio = req.files.audio
         const today = new Date();
-        filenameAudio += `${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}_devocional_audio.mp3`
-        await upload(audio, `devocionales/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}/`+filenameAudio)
+        routeAudio += `devocionales/
+        ${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}/
+        ${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}_devocional_audio.mp3`
+        await upload(audio, routeAudio)
     }
     try {
         const newDevocional = new Devocional({
             titulo: titulo,
             fecha: fecha,
-            audioURL: filenameAudio,
-            imagenURL: filenameImage,
+            audioURL: routeImagen,
+            imagenURL: routeAudio,
             parrafo: parrafo,
             versiculo: versiculo
         })
