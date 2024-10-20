@@ -4,13 +4,8 @@ import { upload, getFileURL } from '../aws/s3.js'
 // Obtener devocionales
 export const devocionales = async (req, res) => {
     const devocionales = await Devocional.find()
-    if (devocionales.length === 0) return res.status(400).json({
-        "message": "Aun no hay devocionales"
-    })
-    res.status(200).json({
-        "devocionales": devocionales
-    });
-    return devocionales
+    if (devocionales.length === 0) return res.status(400).send('Aun no hay devocionales')
+    return res.status(200).send(devocionales)
 }
 
 // Obtener devocional de hoy
@@ -21,25 +16,14 @@ export const devocionalHoy = async (req, res) => {
     if (!devocional) return res.status(404).send('Mensaje de la API: No se encontro el devocional de hoy')
     const { audioURL, imagenURL } = devocional
     if (audioURL) {
-        urlAudio = await getFileURL(audioURL)
+        const tmp = audioURL
+        devocional.audioURL = await getFileURL(tmp)
     }
     if (imagenURL) {
-        urlImagen = await getFileURL(imagenURL)
+        const tmp = imagenURL
+        devocional.imagenURL = await getFileURL(tmp)
     }
-    console.log({
-        "API:": devocional,
-        'urlImagen: ': urlAudio,
-        'urlAudio: ': urlImagen
-    })
-    return res.status(200).json({
-        id: devocional._id,
-        titulo: devocional.titulo,
-        parrafo: devocional.parrafo,
-        versiculo: devocional.versiculo,
-        fecha: devocional.fecha,
-        audioURL: urlAudio,
-        imagenURL: urlImagen,
-    })
+    return res.status(200).send(devocional)
 }
 
 // Buscar devocional especifico
