@@ -18,19 +18,13 @@ export const devocionalHoy = async (req, res) => {
     const date = new Date()
     const hoy = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`
     const devocional = await Devocional.findOne({fecha: hoy}).sort({ fecha: -1 })
-    if (!devocional) return res.status(404).json({
-        "Mensaje de la API": 'No se encontro el devocional de hoy'
-    })
-    const fecha = new Date(devocional.fecha)
-    const ruta = `devocionales/${fecha.getFullYear()}_${fecha.getMonth() + 1}_${fecha.getDate()}/`
+    if (!devocional) return res.status(404).send('Mensaje de la API: No se encontro el devocional de hoy')
     const { audioURL, imagenURL } = devocional
-    let urlAudio
-    let urlImagen
     if (audioURL) {
-        urlAudio = await getFileURL(ruta, audioURL)
+        urlAudio = await getFileURL(audioURL)
     }
     if (imagenURL) {
-        urlImagen = await getFileURL(ruta, imagenURL)
+        urlImagen = await getFileURL(imagenURL)
     }
     console.log({
         "API:": devocional,
@@ -52,56 +46,42 @@ export const devocionalHoy = async (req, res) => {
 export const devocionalFound = async (req, res) => {
     const { id } = req.params
     const devocional = await Devocional.findOne({ _id: id })
-    if (!devocional) return res.status(404).json({
-        "Mensaje de la API": 'No se encontro el devocional'
-    })
-    let urlAudio
-    let urlImagen
-    const fecha = new Date(devocional.fecha)
-    const ruta = `devocionales/${fecha.getFullYear()}_${fecha.getMonth() + 1}_${fecha.getDate()}/`
+    if (!devocional) return res.status(404).send('Mensaje de la API No se encontro el devocional')
     const { audioURL, imagenURL } = devocional
     if (audioURL) {
-        urlAudio = await getFileURL(ruta, audioURL)
+        const tmp = audioURL
+        devocional.audioURL = await getFileURL(tmp)
     }
     if (imagenURL) {
-        urlImagen = await getFileURL(ruta, imagenURL)
+        const tmp = imagenURL
+        devocional.imagenURL = await getFileURL(tmp)
     }
-    console.log({
-        "API:": devocional,
-        'urlImagen: ': urlAudio,
-        'urlAudio: ': urlImagen
-    })
     return res.status(200).json({
         id: devocional._id,
         titulo: devocional.titulo,
         parrafo: devocional.parrafo,
         versiculo: devocional.versiculo,
-        audioURL: urlAudio,
-        imagenURL: urlImagen
+        audioURL: devocional.audioURL,
+        imagenURL: devocional.imagenURL
     })
 }
 
 // Crear devocional
 export const crearDevocional = async (req, res) => {
-    console.log(req.files);
-    console.log(req.body);
     const { titulo, parrafo, versiculo, fecha } = req.body
     let filenameImage = ''
     let filenameAudio = ''
-    let mensaje = ``
     if (req.files.imagen) {
         const imagen = req.files.imagen
         const today = new Date();
         filenameImage += `${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}_devocional_img.${imagen.name.split('.').pop()}`
-        const response = await upload(imagen, `devocionales/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}/`, filenameImage)
-        mensaje += response + " - "
+        await upload(imagen, `devocionales/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}/`+filenameImage)
     }
     if (req.files.audio) {
         const audio = req.files.audio
         const today = new Date();
         filenameAudio += `${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}_devocional_audio.mp3`
-        const response = await upload(audio, `devocionales/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}/`, filenameAudio)
-        mensaje += response + " - "
+        await upload(audio, `devocionales/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}/`+filenameAudio)
     }
     try {
         const newDevocional = new Devocional({
@@ -113,13 +93,9 @@ export const crearDevocional = async (req, res) => {
             versiculo: versiculo
         })
         await newDevocional.save()
-        res.status(200).json({
-            message: 'Devocional creado exitosamente: \n' + mensaje
-        })
+        res.status(200).send('Devocional creado exitosamente')
     } catch (error) {
-        res.status(500).json({
-            "API - Ocurrio un error: ": error.message
-        })
+        console.log(error);
     }
 }
 
@@ -129,21 +105,18 @@ export const editarDevocional = async (req, res) => {
     const { titulo, parrafo, versiculo, fecha } = req.body
     let filenameImage = ''
     let filenameAudio = ''
-    let mensaje = ``
     try {
         if (req.files.imagen) {
             const imagen = req.files.imagen
             const fechaOriginal = new Date(fecha);
             filenameImage += `${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate()}_devocional_img.${imagen.name.split('.').pop()}`
-            const response = await upload(imagen, `devocionales/${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate()}/`, filenameImage)
-            mensaje += response + " - "
+            await upload(imagen, `devocionales/${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate()}/`+filenameImage)
         }
         if (req.files.audio) {
             const audio = req.files.audio
             const fechaOriginal = new Date(fecha);
             filenameAudio += `${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate()}_devocional_audio.mp3`
-            const response = await upload(audio, `devocionales/${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate()}/`, filenameAudio)
-            mensaje += response + " - "
+            await upload(audio, `devocionales/${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate()}/`+filenameAudio)
         }
         const updateData = {
             titulo: titulo,
@@ -163,16 +136,10 @@ export const editarDevocional = async (req, res) => {
             updateData,
             { new: true }
         )
-        if (!DevocionalFound) return res.status(404).json({
-            'API: ': 'Devocional no encontrado'
-        })
-        res.status(200).json({
-            message: 'Devocional modificado exitosamente: \n' + mensaje
-        })
+        if (!DevocionalFound) return res.status(404).send('API: Devocional no encontrado')
+        res.status(200).send('Devocional modificado exitosamente')
     } catch (error) {
-        res.status(500).json({
-            "API - Ocurrio un error: ": error.message
-        })
+        console.log(error)
     }
 }
 
@@ -196,9 +163,6 @@ export const cambiarEstadoDevocional = async (req, res) => {
         })
     } catch (error) {
         console.log(error)
-        res.status(500).json({
-            'API: ': error
-        })
     }
 }
 

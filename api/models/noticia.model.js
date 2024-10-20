@@ -14,6 +14,9 @@ const NoticiaSchema = new mongoose.Schema({
     portada: {
         type: String
     },
+    categoria: {
+        type: String
+    },
     imagenes:{
         type: [String]
     },

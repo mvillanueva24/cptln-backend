@@ -2,14 +2,20 @@ import Noticia from '../models/noticia.model.js'
 import { upload, getFileURL } from '../aws/s3.js'
 
 export const noticias = async (req, res) => {
-    const noticias = await Noticia.find().sort({ fecha: -1 })
+    const noticias = await Noticia.find().sort({ fecha: -1 }).limit(6)
     if (noticias.length == 0) return res.status(400).send('API: No hay noticias aún')
+    for (const noticia of noticias) {
+        const date = new Date(noticia.fecha)
+        const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}/${indiceAWS}/`
+        const filename = noticia.portada
+        noticia.portada = await getFileURL(ruta, )
+    }
     res.status(200).send(noticias)
     return noticias
 }
 
 export const crearNoticias = async (req, res) => {
-    const { titulo, cuerpo, fecha } = req.body
+    const { titulo, cuerpo, fecha, categoria } = req.body
     try {
         let filenamePortada = ''
         let filenameImages = []
@@ -37,6 +43,7 @@ export const crearNoticias = async (req, res) => {
             titulo: titulo,
             cuerpo: cuerpo,
             fecha: fecha,
+            categoria: categoria,
             portada: filenamePortada,
             imagenes: filenameImages
         })
@@ -74,6 +81,7 @@ export const buscarNoticias = async (req, res) => {
         titulo: NoticiaFound.titulo,
         cuerpo: NoticiaFound.cuerpo,
         fecha: NoticiaFound.fecha,
+        categoria: NoticiaFound.categoria,
         imagenes: filenameImages,
         portada: filenamePortada
     })
@@ -85,7 +93,7 @@ export const editarNoticias = async (req, res) => {
     //     console.log(indice+' - '+ index)
     // })
     const { id } = req.params
-    const { titulo, cuerpo, fecha, indexImages } = req.body
+    const { titulo, cuerpo, fecha, categoria, indexImages } = req.body
     const { imagenes, portada } = req.files
     const NoticiaFound = await Noticia.findById(id)
     if (!NoticiaFound) return res.status(404).send('API: Noticia no encontrada')
@@ -106,7 +114,8 @@ export const editarNoticias = async (req, res) => {
     const uploadData = {
         titulo: titulo,
         cuerpo: cuerpo,
-        fecha: fecha
+        fecha: fecha,
+        categoria: categoria
     }
 
     await Noticia.findByIdAndUpdate(
