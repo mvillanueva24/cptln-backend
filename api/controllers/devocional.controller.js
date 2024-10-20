@@ -56,13 +56,13 @@ export const crearDevocional = async (req, res) => {
         if (req.files.imagen) {
             const imagen = req.files.imagen
             const today = new Date();
-            newDevocional.audioURL += `devocionales/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}_devocional_img.${imagen.name.split('.').pop()}`
+            newDevocional.audioURL = `devocionales/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}_devocional_img.${imagen.name.split('.').pop()}`
             await upload(imagen, newDevocional.audioURL)
         }
         if (req.files.audio) {
             const audio = req.files.audio
             const today = new Date();
-            newDevocional.imagenURL += `devocionales/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}_devocional_audio.mp3`
+            newDevocional.imagenURL = `devocionales/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}_devocional_audio.mp3`
             await upload(audio, newDevocional.imagenURL)
         }
         await newDevocional.save()

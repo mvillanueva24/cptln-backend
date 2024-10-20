@@ -2,16 +2,13 @@ import Noticia from '../models/noticia.model.js'
 import { upload, getFileURL } from '../aws/s3.js'
 
 export const noticias = async (req, res) => {
-    const noticias = await Noticia.find().sort({ fecha: -1 }).limit(6)
+    const noticias = await Noticia.find().sort({ fecha: -1 })
     if (noticias.length == 0) return res.status(400).send('API: No hay noticias aún')
     for (const noticia of noticias) {
-        const date = new Date(noticia.fecha)
-        const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}/${indiceAWS}/`
-        const filename = noticia.portada
-        noticia.portada = await getFileURL(ruta, )
+        const tmp = noticia.portada
+        noticia.portada = await getFileURL(tmp)
     }
-    res.status(200).send(noticias)
-    return noticias
+    return res.status(200).send(noticias)
 }
 
 export const crearNoticias = async (req, res) => {
