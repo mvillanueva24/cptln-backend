@@ -33,12 +33,9 @@ export const crearEvento = async (req, res) => {
             ubicacion: ubicacion
         })
         await newEvent.save()
-        return res.status(200).json({
-            API: 'Evento creado exitosamente'
-        })
+        return res.status(200).json('Evento creado exitosamente')
     } catch (error) {
-        console.log(`API: ` + error);
-        res.status(400).send('API: No se logro crear un evento')
+        console.log(error)
     }
 }
 

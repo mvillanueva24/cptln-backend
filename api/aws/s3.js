@@ -50,10 +50,10 @@ export async function upload(file, ruta) {
 // } 
 
 
-export const getFileURL = async (ruta, filename) =>{
+export const getFileURL = async (ruta) =>{
     const command = new GetObjectCommand({
         Bucket: AWS_BUCKET_NAME,
-        Key: ruta+filename
+        Key: ruta
     })
     return await getSignedUrl(s3, command, { expiresIn: 3600})
 } 
