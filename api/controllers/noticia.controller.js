@@ -4,11 +4,10 @@ import { upload, getFileURL } from '../aws/s3.js'
 export const noticias = async (req, res) => {
     const noticias = await Noticia.find().sort({ fecha: -1 })
     if (noticias.length == 0) return res.status(400).send('API: No hay noticias aún')
-    // for (const noticia of noticias) {
-    //     const tmp = noticia.portada
-    //     noticia.portada = await getFileURL(tmp)
-    //     console.log(noticia)
-    // }
+    for (const noticia of noticias) {
+        const tmp = noticia.portada
+        noticia.portada = await getFileURL(tmp)
+    }
     return res.status(200).send(noticias)
 }
 
