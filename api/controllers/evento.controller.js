@@ -8,7 +8,7 @@ export const eventos = async (req, res) => {
             'API: ': 'Aun no hay eventos'
         })
     }
-    return eventos
+    return res.status(200).send(eventos)
 }
 
 export const buscarEvento = async (req, res) => {
@@ -19,7 +19,7 @@ export const buscarEvento = async (req, res) => {
     res.status(200).json({
         API: eventFound
     })
-    return eventFound
+    return res.status(200).send(eventFound)
 }
 
 export const crearEvento = async (req, res) => {
