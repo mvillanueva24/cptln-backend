@@ -3,12 +3,31 @@ import { upload, getFileURL } from '../aws/s3.js'
 
 export const noticias = async (req, res) => {
     const noticias = await Noticia.find().sort({ fecha: -1 })
-    if (noticias.length == 0) return res.status(400).send('API: No hay noticias aún')
+    if (noticias.length == 0) return res.status(400).send('No hay noticias aún')
     for (const noticia of noticias) {
         const tmp = noticia.portada
         noticia.portada = await getFileURL(tmp)
     }
     return res.status(200).send(noticias)
+}
+
+
+export const noticiasPagination = async (req, res) => {
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 2
+    const noticias = await Noticia.find().sort({ fecha: -1 }).skip((page - 1) * limit).limit(limit)
+    const totalNoticias = await Noticia.countDocuments()
+    if (noticias.length == 0) return res.status(400).send('No hay noticias aún')
+    for (const noticia of noticias) {   
+        const tmp = noticia.portada
+        noticia.portada = await getFileURL(tmp)
+    }
+    return res.status(200).json({
+        noticias,
+        currentPage: page,
+        totalPages: Math.ceil(totalNoticias / limit),
+        totalNoticias
+    })
 }
 
 export const crearNoticias = async (req, res) => {
@@ -25,18 +44,18 @@ export const crearNoticias = async (req, res) => {
         const longitudNoticias = await Noticia.find({ fecha: fecha })
         if (req.files.imagenes) {
             const imagenes = req.files.imagenes
-            for (let index = 0; imagenes.length > index ; index++) {
+            for (let index = 0; imagenes.length > index; index++) {
                 const date = new Date(fecha)
-                const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()+1}/${longitudNoticias.length}/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()+1}_noticia_imagenes_${index}_img.${imagenes[index].name.split('.').pop()}`
+                const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate() + 1}/${longitudNoticias.length}/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate() + 1}_noticia_imagenes_${index}_img.${imagenes[index].name.split('.').pop()}`
                 await upload(imagenes[index], ruta)
                 filenameImages.push(ruta)
             }
-            newNoticia.imagenes = filenameImages       
+            newNoticia.imagenes = filenameImages
         }
         if (req.files.portada) {
             const portada = req.files.portada
             const date = new Date(fecha);
-            const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()+1}/${longitudNoticias.length}/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()+1}_noticia_portada.${portada.name.split('.').pop()}`
+            const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate() + 1}/${longitudNoticias.length}/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate() + 1}_noticia_portada.${portada.name.split('.').pop()}`
             await upload(portada, ruta)
             newNoticia.portada = ruta
         }
@@ -50,7 +69,7 @@ export const crearNoticias = async (req, res) => {
 export const buscarNoticias = async (req, res) => {
     const { id } = req.params
     const NoticiaFound = await Noticia.findById(id)
-    if (!NoticiaFound) return res.status(404).send('API: Noticia no encontrada')
+    if (!NoticiaFound) return res.status(404).send('Noticia no encontrada')
     let filenameImages = []
     const { imagenes, portada } = NoticiaFound
     if (imagenes.length > 0) {
@@ -80,7 +99,7 @@ export const editarNoticias = async (req, res) => {
     const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}/${indiceAWS}/`
     if (req.files.imagenes > 0) {
         for (let index = 0; index < indexImages.length; index++) {
-            const filenameImage = `${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}_noticia_imagenes_${indexImages[index]}_img.${imagen.name.split('.').pop()}`
+            const filenameImage = `${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}_noticia_imagenes_${indexImages[index]}_img.${imagenes[index].name.split('.').pop()}`
             await upload(imagenes[index], ruta, filenameImage)
         }
     }
@@ -107,24 +126,15 @@ export const estadoNoticias = async (req, res) => {
     const { id } = req.body
     try {
         const NoticiaFound = await Noticia.findById(id)
-        if (!NoticiaFound) return res.status(404).json({
-            'API: ': 'Devocional no encontrado'
-        })
-        const updateData = {
-            estado: !NoticiaFound.estado
-        }
+        if (!NoticiaFound) return res.status(404).json('Devocional no encontrado')
+        const updateData = { estado: !NoticiaFound.estado }
         await Evento.findByIdAndUpdate(
             id,
             updateData,
             { new: true }
         )
-        return res.status(200).json({
-            'API: ': 'Eliminado exitosamente'
-        })
+        return res.status(200).json('Eliminado exitosamente')
     } catch (error) {
         console.log(error)
-        res.status(500).json({
-            'API: ': error
-        })
     }
 }

@@ -59,8 +59,6 @@ export const devocionalFound = async (req, res) => {
 
 // Crear devocional
 export const crearDevocional = async (req, res) => {
-    console.log(req.body)
-    console.log(req.files)
     const { titulo, parrafo, versiculo, fecha } = req.body
     try {
         const newDevocional = new Devocional({
@@ -94,8 +92,6 @@ export const crearDevocional = async (req, res) => {
 export const editarDevocional = async (req, res) => {
     const { id } = req.params
     const { titulo, parrafo, versiculo, fecha } = req.body
-    console.log(req.body)
-    console.log(req.files)
     try {
         const updateData = {
             titulo: titulo,
@@ -107,13 +103,13 @@ export const editarDevocional = async (req, res) => {
             if (req.files.imagen) {
                 const imagen = req.files.imagen
                 const fechaOriginal = new Date(fecha);
-                updateData.imagenURL = `${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate()}_devocional_img.${imagen.name.split('.').pop()}`
+                updateData.imagenURL = `devocionales/${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate() + 1}/${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate()}_devocional_img.${imagen.name.split('.').pop()}`
                 await upload(imagen, updateData.imagenURL)
             }
             if (req.files.audio) {
                 const audio = req.files.audio
                 const fechaOriginal = new Date(fecha);
-                updateData.audioURL = `${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate()}_devocional_audio.mp3`
+                updateData.audioURL = `devocionales/${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate() + 1}/${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate()}_devocional_audio.mp3`
                 await upload(audio, updateData.audioURL)
             }
         }
@@ -133,9 +129,7 @@ export const cambiarEstadoDevocional = async (req, res) => {
     const { id } = req.body
     try {
         const DevocionalFound = await Devocional.findById(id)
-        if (!DevocionalFound) return res.status(404).json({
-            'API: ': 'Devocional no encontrado'
-        })
+        if (!DevocionalFound) return res.status(404).send('Devocional no encontrado')
         const updateData = {
             estado: !DevocionalFound.estado
         }
@@ -144,16 +138,8 @@ export const cambiarEstadoDevocional = async (req, res) => {
             updateData,
             { new: true }
         )
-        return res.status(200).json({
-            'API: ': 'Eliminado exitosamente'
-        })
+        return res.status(200).send('Eliminado exitosamente')
     } catch (error) {
         console.log(error)
     }
-}
-
-export const test = (req, res) => {
-    const today = new Date();
-    const filenameImage = `Devocional_IMG_${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}`
-    console.log(filenameImage);
 }
