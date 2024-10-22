@@ -27,7 +27,7 @@ export const crearNoticias = async (req, res) => {
             const imagenes = req.files.imagenes
             for (let index = 0; imagenes.length > index ; index++) {
                 const date = new Date(fecha)
-                const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}/${longitudNoticias.length}/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}_noticia_imagenes_${index}_img.${imagenes[index].name.split('.').pop()}`
+                const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()+1}/${longitudNoticias.length}/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()+1}_noticia_imagenes_${index}_img.${imagenes[index].name.split('.').pop()}`
                 await upload(imagenes[index], ruta)
                 filenameImages.push(ruta)
             }
@@ -36,7 +36,7 @@ export const crearNoticias = async (req, res) => {
         if (req.files.portada) {
             const portada = req.files.portada
             const date = new Date(fecha);
-            const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}/${longitudNoticias.length}/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}_noticia_portada.${portada.name.split('.').pop()}`
+            const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()+1}/${longitudNoticias.length}/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()+1}_noticia_portada.${portada.name.split('.').pop()}`
             await upload(portada, ruta)
             newNoticia.portada = ruta
         }
