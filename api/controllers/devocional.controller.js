@@ -3,9 +3,23 @@ import { upload, getFileURL } from '../aws/s3.js'
 
 // Obtener devocionales
 export const devocionales = async (req, res) => {
-    const devocionales = await Devocional.find()
+    const devocionales = await Devocional.find().sort({ fecha: -1 })
     if (devocionales.length === 0) return res.status(400).send('Aun no hay devocionales')
     return res.status(200).send(devocionales)
+}
+
+export const devocionalesPagination = async(req, res) => {
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 2
+    const devocionales = await Devocional.find().sort({ fecha: -1 }).skip((page - 1) * limit).limit(limit)
+    const totalDevocionales = await Devocional.countDocuments()
+    if (devocionales.length == 0) return res.status(400).send('Aun no hay eventos')
+    return res.status(200).json({
+        devocionales,
+        currentPage: page,
+        totalPages: Math.ceil(totalDevocionales/limit),
+        totalDevocionales
+    })
 }
 
 // Obtener devocional de hoy

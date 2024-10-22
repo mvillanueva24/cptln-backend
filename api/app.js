@@ -28,6 +28,8 @@ app.use(fileUpload({
 app.use(express.json())
 app.use(cookieParser())
 
+// app.use('/devocional_crear')
+
 //Rutas
 app.use('/api', authRoutes)
 app.use('/api', devocionalRoutes)
