@@ -20,12 +20,13 @@ const s3 = new S3Client({
 })
 
 //Subir archivos a S3
-export async function upload(file, ruta) {
+export async function upload(file, ruta, contentType = undefined) {
     const stream = fs.createReadStream(file.tempFilePath)
     const UploadParams = {
         Bucket: AWS_BUCKET_NAME,
         Key: ruta,
-        Body: stream
+        Body: stream,
+        ContentType: contentType
     }
     const command = new PutObjectCommand(UploadParams)
     const result = await s3.send(command)
@@ -40,16 +41,6 @@ export async function upload(file, ruta) {
 }
 
 
-// Generar link prefirmado de un archivo
-// export const getFileURL = async (ruta, filename) =>{
-//     const command = new GetObjectCommand({
-//         Bucket: AWS_BUCKET_NAME,
-//         Key: ruta+filename
-//     })
-//     return await getSignedUrl(s3, command, { expiresIn: 3600})
-// } 
-
-
 export const getFileURL = async (ruta) =>{
     const command = new GetObjectCommand({
         Bucket: AWS_BUCKET_NAME,
@@ -60,31 +51,3 @@ export const getFileURL = async (ruta) =>{
 
 
 export default s3
-
-// //Subir archivo a S3
-
-
-// export async function getItems() {
-//     const command = new ListObjectsCommand({
-//         Bucket: AWS_BUCKET_NAME
-//     })
-//     const result = await s3.send(command)
-//     console.log(result)
-// }
-
-// export async function getItem(filename) {
-//     const command = new GetObjectCommand({
-//         Bucket: AWS_BUCKET_NAME,
-//         Key: filename
-//     })
-//     return await s3.send(command)
-// }
-
-// export async function getItem(filename) {
-//     const command = new GetObjectCommand({
-//         Bucket: AWS_BUCKET_NAME,
-//         Key: filename
-//     })
-//     const result = await s3.send(command)
-//     result.Body.pipe(fs.createWriteStream(`./images/${filename}.jpg`))
-// }

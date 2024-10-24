@@ -3,21 +3,25 @@ import authRoutes from './routes/auth.routes.js'
 import devocionalRoutes from './routes/devocional.routes.js'
 import eventosRoutes from './routes/eventos.routes.js'
 import noticiasRoutes from './routes/noticias.routes.js'
+import categoriasRoutes from './routes/categoria.routes.js'
+import ebooksRoutes from './routes/ebooks.routes.js'
+import programasRoutes from './routes/programas.routes.js'
 import cookieParser from 'cookie-parser'
 import fileUpload from 'express-fileupload'
 import cors from 'cors'
 
 const app = express()
 
-app.use(cors({
-    origin: 'https://felipe.josedev.net.pe',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-}))
+
+// app.use(cors({
+//     origin: 'https://felipe.josedev.net.pe',
+//     credentials: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//     allowedHeaders: ['Content-Type', 'Authorization'],
+// }))
 
 
-// app.use(cors())
+app.use(cors())
 
 app.use(fileUpload({
     useTempFiles: true,
@@ -31,9 +35,14 @@ app.use(cookieParser())
 // app.use('/devocional_crear')
 
 //Rutas
-app.use('/api', authRoutes)
-app.use('/api', devocionalRoutes)
-app.use('/api', eventosRoutes)
-app.use('/api', noticiasRoutes)
+app.use('/api', [
+    authRoutes,
+    devocionalRoutes,
+    eventosRoutes,
+    noticiasRoutes,
+    categoriasRoutes,
+    ebooksRoutes,
+    programasRoutes
+])
 
 export default app
