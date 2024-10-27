@@ -7,7 +7,15 @@ import Programa from '../models/programa.model.js'
 // }
 
 export const programas = async (req, res) => {
-    const programasFound = await Programa.find()
+    const programasFound = await Programa.find().limit(3)
+    for (const programa of programasFound) {
+        const imagenes = programa.imagenes
+        programa.imagenes = []
+        for (const imagen of imagenes) {
+            const ruta = await getFileURL(imagen.ruta)
+            programa.imagenes.push({ ruta: ruta, estado: imagen.estado })
+        }
+    }
     return res.status(200).send(programasFound)
 }
 
@@ -41,7 +49,7 @@ export const programasPagination = async (req, res) => {
 }
 
 export const crearPrograma = async (req, res) => {
-    const { titulo, categoria } = req.body
+    const { titulo, categoria, color } = req.body
     const { imagenes } = req.files
     let imagenesProgram = []
     for (const imagen of imagenes) {
@@ -49,7 +57,8 @@ export const crearPrograma = async (req, res) => {
         await upload(imagen, ruta)
         imagenesProgram.push({
             ruta: ruta,
-            estado: true
+            estado: true,
+            color: color
         })
     }
     await new Programa({
@@ -58,4 +67,35 @@ export const crearPrograma = async (req, res) => {
         imagenes: imagenesProgram
     }).save()
     res.send('OK')
+}
+
+export const buscarPrograma = async(req, res)=>{
+    const { id } = req.params
+    const ProgramaFound = await Programa.findById(id)
+    if (!ProgramaFound) return res.status(404).send('No encontrado')
+    const imagenes = ProgramaFound.imagenes
+    ProgramaFound.imagenes = []
+    for(const imagen of imagenes){
+        const tmp = imagen.ruta
+        const ruta = await getFileURL(tmp)
+        ProgramaFound.imagenes.push({ruta: ruta, estado: imagen.estado})
+    }
+    return res.status(200).send(ProgramaFound)
+}
+
+export const borrarPrograma = async(req, res)=>{
+    const { id } = req.body
+    try {
+        const ProgramaFound = await Programa.findById(id)
+        if (!ProgramaFound) return res.status(404).json('Devocional no encontrado')
+        const updateData = { estado: !ProgramaFound.estado }
+        await Programa.findByIdAndUpdate(
+            id,
+            updateData,
+            { new: true }
+        )
+        return res.status(200).json('Eliminado exitosamente')
+    } catch (error) {
+        console.log(error)
+    }
 }

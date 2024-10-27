@@ -22,17 +22,22 @@ const programaSchema = new mongoose.Schema({
     categoria: {
         type: String
     },
-    descripcion:{
+    descripcion: {
+        type: String
+    },
+    color: {
         type: String
     },
     imagenes: {
         type: [imagenSchema],
-        default: [] 
+        default: []
     }
 },
     {
         timestamps: true
     }
 )
+
+
 
 export default mongoose.model('Programa', programaSchema)
