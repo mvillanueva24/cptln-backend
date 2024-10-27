@@ -1,18 +1,28 @@
 import mongoose from "mongoose";
 
+const capituloSchema = new mongoose.Schema({
+    titulo: {
+        type: String,
+        required: true
+    },
+    pdf: {
+        type: String,
+    },
+    idYoutube: {
+        type: String
+    }
+});
+
 const cursoModel = new mongoose.Schema({
     titulo: {
         type: String
     },
-    portada: {
+    descripcion: {
         type: String
     },
     capitulos: {
-        type: [String]   
-    },
-    archivos: {
-        type: [String]
-    },
+        type: [capituloSchema]
+    }
 
 },
     {

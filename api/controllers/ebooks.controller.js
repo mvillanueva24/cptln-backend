@@ -3,12 +3,12 @@ import { getFileURL, upload } from "../aws/s3.js"
 
 export const ebooks = async (req, res) => {
     const ebooks = await Ebook.find()
-    if (ebooks.length == 0) return res.status(400).send('Sin libros aun')
+    if (ebooks.length == 0) { return res.status(400).send('Sin libros aun') }
     for (const ebook of ebooks) {
-        tmp = ebook.portada
+        let tmp = ebook.portada
         ebook.portada = await getFileURL(tmp)
-        // let tmp = ebook.pdf
-        // ebook.ruta = await getFileURL(tmp)
+        tmp = ebook.pdf
+        ebook.pdf = await getFileURL(tmp)
     }
     return res.status(200).send(ebooks)
 }

@@ -5,9 +5,13 @@ const imagenSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    estado: {
+    estadoHome: {
         type: Boolean,
-        default: false // Por defecto, el estado es verdadero
+        default: false
+    },
+    estadoDetalles: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -18,9 +22,8 @@ const programaSchema = new mongoose.Schema({
     categoria: {
         type: String
     },
-    link: {
-        type: String,
-        required: true
+    descripcion:{
+        type: String
     },
     imagenes: {
         type: [imagenSchema],

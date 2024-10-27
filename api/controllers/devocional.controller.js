@@ -26,7 +26,7 @@ export const devocionalesPagination = async (req, res) => {
 export const devocionalHoy = async (req, res) => {
     const date = new Date()
     const hoy = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-    const devocional = await Devocional.findOne({ fecha: hoy }).sort({ fecha: -1 })
+    const devocional = await Devocional.findOne({ fecha: { $lte: hoy } }).sort({ fecha: -1 })
     if (!devocional) return res.status(404).send('No se encontro el devocional de hoy')
     const { audioURL, imagenURL } = devocional
     if (audioURL) {
@@ -44,7 +44,7 @@ export const devocionalHoy = async (req, res) => {
 export const devocionalFound = async (req, res) => {
     const { id } = req.params
     const devocional = await Devocional.findOne({ _id: id })
-    if (!devocional) return res.status(404).send('Mensaje de la API No se encontro el devocional')
+    if (!devocional) return res.status(404).send('No se encontro el devocional')
     const { audioURL, imagenURL } = devocional
     if (audioURL) {
         const tmp = audioURL
@@ -71,15 +71,15 @@ export const crearDevocional = async (req, res) => {
             if (req.files.imagen) {
                 const imagen = req.files.imagen
                 const today = new Date(fecha);
-                newDevocional.imagenURL = `devocionales/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate() + 1}/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate() + 1}_devocional_img.${imagen.name.split('.').pop()}`
+                newDevocional.imagenURL = `devocionales/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate() + 1}/${newDevocional._id}/${newDevocional._id}_devocional_img.${imagen.name.split('.').pop()}`
                 await upload(imagen, newDevocional.imagenURL)
             }
-        }
-        if (req.files.audio) {
-            const audio = req.files.audio
-            const today = new Date(fecha);
-            newDevocional.audioURL = `devocionales/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate() + 1}/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate() + 1}_devocional_audio.mp3`
-            await upload(audio, newDevocional.audioURL)
+            if (req.files.audio) {
+                const audio = req.files.audio
+                const today = new Date(fecha);
+                newDevocional.audioURL = `devocionales/${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate() + 1}/${newDevocional._id}/${newDevocional._id}_devocional_audio.mp3`
+                await upload(audio, newDevocional.audioURL)
+            }
         }
         await newDevocional.save()
         res.status(200).send('Devocional creado exitosamente')
@@ -92,6 +92,8 @@ export const crearDevocional = async (req, res) => {
 export const editarDevocional = async (req, res) => {
     const { id } = req.params
     const { titulo, parrafo, versiculo, fecha } = req.body
+    const DevocionalFound = await Devocional.findById(id)
+    if (!DevocionalFound) return res.status(404).send('Devocional no encontrado')
     try {
         const updateData = {
             titulo: titulo,
@@ -103,22 +105,17 @@ export const editarDevocional = async (req, res) => {
             if (req.files.imagen) {
                 const imagen = req.files.imagen
                 const fechaOriginal = new Date(fecha);
-                updateData.imagenURL = `devocionales/${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate() + 1}/${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate()}_devocional_img.${imagen.name.split('.').pop()}`
+                updateData.imagenURL = `devocionales/${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate() + 1}/${DevocionalFound._id}/${DevocionalFound._id}_devocional_img.${imagen.name.split('.').pop()}`
                 await upload(imagen, updateData.imagenURL)
             }
             if (req.files.audio) {
                 const audio = req.files.audio
                 const fechaOriginal = new Date(fecha);
-                updateData.audioURL = `devocionales/${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate() + 1}/${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate()}_devocional_audio.mp3`
+                updateData.audioURL = `devocionales/${fechaOriginal.getFullYear()}_${fechaOriginal.getMonth() + 1}_${fechaOriginal.getDate() + 1}/${DevocionalFound._id}/${DevocionalFound._id}_devocional_audio.mp3`
                 await upload(audio, updateData.audioURL)
             }
         }
-        const DevocionalFound = await Devocional.findByIdAndUpdate(
-            id,
-            updateData,
-            { new: true }
-        )
-        if (!DevocionalFound) return res.status(404).send('Devocional no encontrado')
+        await Devocional.findByIdAndUpdate(id, updateData, { new: true });
         res.status(200).send('Devocional modificado exitosamente')
     } catch (error) {
         console.log(error)

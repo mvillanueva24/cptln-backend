@@ -2,7 +2,7 @@ import Noticia from '../models/noticia.model.js'
 import { upload, getFileURL } from '../aws/s3.js'
 
 export const noticias = async (req, res) => {
-    const noticias = await Noticia.find().sort({ fecha: -1 })
+    const noticias = await Noticia.find().sort({ fecha: -1 }).limit(8)
     if (noticias.length == 0) return res.status(400).send('No hay noticias aún')
     for (const noticia of noticias) {
         const tmp = noticia.portada
@@ -32,7 +32,6 @@ export const noticiasPagination = async (req, res) => {
 
 export const crearNoticias = async (req, res) => {
     const { titulo, cuerpo, fecha, categoria } = req.body
-    console.log(req.files)
     try {
         const newNoticia = new Noticia({
             titulo: titulo,
@@ -41,23 +40,24 @@ export const crearNoticias = async (req, res) => {
             categoria: categoria,
         })
         let filenameImages = []
-        const longitudNoticias = await Noticia.find({ fecha: fecha })
-        if (req.files.imagenes) {
-            const imagenes = req.files.imagenes
-            for (let index = 0; imagenes.length > index; index++) {
-                const date = new Date(fecha)
-                const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate() + 1}/${longitudNoticias.length}/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate() + 1}_noticia_imagenes_${index}_img.${imagenes[index].name.split('.').pop()}`
-                await upload(imagenes[index], ruta)
-                filenameImages.push(ruta)
+        if (req.files) {
+            if (req.files.imagenes) {
+                const { imagenes } = req.files
+                for (let index = 0; imagenes.length > index; index++) {
+                    const date = new Date(fecha)
+                    const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate() + 1}/${newNoticia._id}/${newNoticia._id}_noticia_imagenes_${index}_img.${imagenes[index].name.split('.').pop()}`
+                    await upload(imagenes[index], ruta)
+                    filenameImages.push(ruta)
+                }
+                newNoticia.imagenes = filenameImages
             }
-            newNoticia.imagenes = filenameImages
-        }
-        if (req.files.portada) {
-            const portada = req.files.portada
-            const date = new Date(fecha);
-            const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate() + 1}/${longitudNoticias.length}/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate() + 1}_noticia_portada.${portada.name.split('.').pop()}`
-            await upload(portada, ruta)
-            newNoticia.portada = ruta
+            if (req.files.portada) {
+                const { portada } = req.files
+                const date = new Date(fecha);
+                const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate() + 1}/${newNoticia._id}/${newNoticia._id}_noticia_portada.${portada.name.split('.').pop()}`
+                await upload(portada, ruta)
+                newNoticia.portada = ruta
+            }
         }
         await newNoticia.save()
         res.status(200).send('Noticia creada exitosamente')
@@ -93,19 +93,19 @@ export const editarNoticias = async (req, res) => {
     const { imagenes, portada } = req.files
     const NoticiaFound = await Noticia.findById(id)
     if (!NoticiaFound) return res.status(404).send('API: Noticia no encontrada')
-    const NoticiasArray = await Noticia.find({ fecha: NoticiaFound.fecha }).sort({ createdAt: 1 })
-    const indiceAWS = NoticiasArray.findIndex(n => n._id.toString() === NoticiaFound._id.toString())
-    const date = new Date(NoticiaFound.fecha)
-    const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}/${indiceAWS}/`
-    if (req.files.imagenes > 0) {
-        for (let index = 0; index < indexImages.length; index++) {
-            const filenameImage = `${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}_noticia_imagenes_${indexImages[index]}_img.${imagenes[index].name.split('.').pop()}`
-            await upload(imagenes[index], ruta, filenameImage)
+    const NoticiasArray = await Noticia.find({ fecha: NoticiaFound.fecha }).sort({ createdAt: 1 })    
+    if (req.files){
+        const date = new Date(NoticiaFound.fecha)
+        if (req.files.imagenes > 0) {
+            for (let index = 0; index < indexImages.length; index++) {
+                const tmp = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()+1}/${NoticiaFound._id}/${NoticiaFound._id}_noticia_imagenes_${indexImages[index]}_img.${imagenes[index].name.split('.').pop()}`
+                await upload(imagenes[index], tmp)
+            }
         }
-    }
-    if (req.files.portada) {
-        const filenamePortada = `${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}_noticia_portada.${portada.name.split('.').pop()}`
-        await upload(portada, ruta, filenamePortada)
+        if (req.files.portada) {
+            const tmp = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()+1}/${NoticiaFound._id}/${NoticiaFound._id}_noticia_portada.${portada.name.split('.').pop()}`
+            await upload(portada, tmp)
+        }
     }
     const uploadData = {
         titulo: titulo,

@@ -6,6 +6,7 @@ import noticiasRoutes from './routes/noticias.routes.js'
 import categoriasRoutes from './routes/categoria.routes.js'
 import ebooksRoutes from './routes/ebooks.routes.js'
 import programasRoutes from './routes/programas.routes.js'
+import solicitudesRoutes from './routes/seguidor.routes.js'
 import cookieParser from 'cookie-parser'
 import fileUpload from 'express-fileupload'
 import cors from 'cors'
@@ -42,7 +43,8 @@ app.use('/api', [
     noticiasRoutes,
     categoriasRoutes,
     ebooksRoutes,
-    programasRoutes
+    programasRoutes,
+    solicitudesRoutes
 ])
 
 export default app
