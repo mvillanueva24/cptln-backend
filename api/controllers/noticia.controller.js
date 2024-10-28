@@ -90,11 +90,11 @@ export const buscarNoticias = async (req, res) => {
 export const editarNoticias = async (req, res) => {
     const { id } = req.params
     const { titulo, cuerpo, fecha, programaRef, indexImages } = req.body
-    const { imagenes, portada } = req.files
     const NoticiaFound = await Noticia.findById(id)
     if (!NoticiaFound) return res.status(404).send('API: Noticia no encontrada')
     const NoticiasArray = await Noticia.find({ fecha: NoticiaFound.fecha }).sort({ createdAt: 1 })    
     if (req.files){
+        const { imagenes, portada } = req.files
         const date = new Date(NoticiaFound.fecha)
         if (req.files.imagenes > 0) {
             for (let index = 0; index < indexImages.length; index++) {
