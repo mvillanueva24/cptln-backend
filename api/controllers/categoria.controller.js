@@ -94,8 +94,11 @@ export const buscarCategoria = async (req, res) => {
 
 export const buscarCategoriaPorNombre = async (req, res) => {
     const { nombre } = req.body
+    console.log(nombre);
     const customNombre = nombre.replace(/-/g, ' ');
+    console.log(customNombre);
     const categoriaFound = await Categoria.find({nombre: { $regex: new RegExp(`^${customNombre.toLowerCase()}$`, "i") }})
+    console.log(categoriaFound);
     if (!categoriaFound) { return res.status(404).send('Categoria no encontrada') }
     return res.status(200).send(categoriaFound)
 }

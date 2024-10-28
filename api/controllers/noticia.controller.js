@@ -31,13 +31,13 @@ export const noticiasPagination = async (req, res) => {
 }
 
 export const crearNoticias = async (req, res) => {
-    const { titulo, cuerpo, fecha, categoria } = req.body
+    const { titulo, cuerpo, fecha, programaRef } = req.body
     try {
         const newNoticia = new Noticia({
             titulo: titulo,
             cuerpo: cuerpo,
             fecha: fecha,
-            categoria: categoria,
+            programaRef, programaRef
         })
         let filenameImages = []
         if (req.files) {
@@ -89,7 +89,7 @@ export const buscarNoticias = async (req, res) => {
 
 export const editarNoticias = async (req, res) => {
     const { id } = req.params
-    const { titulo, cuerpo, fecha, categoria, indexImages } = req.body
+    const { titulo, cuerpo, fecha, programaRef, indexImages } = req.body
     const { imagenes, portada } = req.files
     const NoticiaFound = await Noticia.findById(id)
     if (!NoticiaFound) return res.status(404).send('API: Noticia no encontrada')
@@ -111,7 +111,7 @@ export const editarNoticias = async (req, res) => {
         titulo: titulo,
         cuerpo: cuerpo,
         fecha: fecha,
-        categoria: categoria
+        programaRef: programaRef
     }
 
     await Noticia.findByIdAndUpdate(

@@ -9,14 +9,26 @@ const imagenSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    estadoDetalles: {
-        type: Boolean,
-        default: false
-    }
 });
+
+const contenidoSchema = new mongoose.Schema({
+    subtitulo: {
+        type: String
+    },
+    parrafo: {
+        type: String
+    },
+    imagen: {
+        type: String,
+        default: null
+    }
+})
 
 const programaSchema = new mongoose.Schema({
     titulo: {
+        type: String
+    },
+    abreviatura: {
         type: String
     },
     categoria: {
@@ -27,6 +39,10 @@ const programaSchema = new mongoose.Schema({
     },
     color: {
         type: String
+    },
+    contenido:{
+        type: [contenidoSchema],
+        default: []
     },
     imagenes: {
         type: [imagenSchema],
