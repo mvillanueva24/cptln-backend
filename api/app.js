@@ -7,6 +7,7 @@ import categoriasRoutes from './routes/categoria.routes.js'
 import ebooksRoutes from './routes/ebooks.routes.js'
 import programasRoutes from './routes/programas.routes.js'
 import solicitudesRoutes from './routes/seguidor.routes.js'
+import cursosRoutes from './routes/cursos.routes.js'
 import cookieParser from 'cookie-parser'
 import fileUpload from 'express-fileupload'
 import cors from 'cors'
@@ -14,15 +15,15 @@ import cors from 'cors'
 const app = express()
 
 
-// app.use(cors({
-//     origin: 'https://felipe.josedev.net.pe',
-//     credentials: true,
-//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//     allowedHeaders: ['Content-Type', 'Authorization'],
-// }))
+app.use(cors({
+    origin: 'https://felipe.josedev.net.pe',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}))
 
 
-app.use(cors())
+// app.use(cors())
 
 app.use(fileUpload({
     useTempFiles: true,
@@ -44,7 +45,8 @@ app.use('/api', [
     categoriasRoutes,
     ebooksRoutes,
     programasRoutes,
-    solicitudesRoutes
+    solicitudesRoutes,
+    cursosRoutes
 ])
 
 export default app

@@ -30,4 +30,7 @@ const cursoModel = new mongoose.Schema({
     }
 )
 
-export default mongoose.model('Curso', cursoModel)
+const Curso = mongoose.model('Curso', cursoModel);
+const Capitulo = mongoose.model('Capitulo', capituloSchema);
+
+export { Curso, Capitulo };

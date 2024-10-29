@@ -40,6 +40,9 @@ const programaSchema = new mongoose.Schema({
     color: {
         type: String
     },
+    enlace: {
+        type: String
+    },
     contenido:{
         type: [contenidoSchema],
         default: []
@@ -55,5 +58,7 @@ const programaSchema = new mongoose.Schema({
 )
 
 
+const Programa = mongoose.model('Programa', programaSchema);
+const Contenido = mongoose.model('Contenido', contenidoSchema);
 
-export default mongoose.model('Programa', programaSchema)
+export { Programa, Contenido };

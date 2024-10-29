@@ -1,5 +1,6 @@
 import Noticia from '../models/noticia.model.js'
 import { upload, getFileURL } from '../aws/s3.js'
+import mongoose from 'mongoose'
 
 export const noticias = async (req, res) => {
     const noticias = await Noticia.find().sort({ fecha: -1 }).limit(8)
@@ -68,6 +69,9 @@ export const crearNoticias = async (req, res) => {
 
 export const buscarNoticias = async (req, res) => {
     const { id } = req.params
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(200).send(false);
+    }
     const NoticiaFound = await Noticia.findById(id)
     if (!NoticiaFound) return res.status(404).send('Noticia no encontrada')
     let filenameImages = []

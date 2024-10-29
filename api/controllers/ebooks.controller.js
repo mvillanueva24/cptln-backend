@@ -29,18 +29,24 @@ export const ebooksPagination = async (req, res) => {
 
 export const guardarPDF = async (req, res) => {
     console.log(req.files)
-    const { pdf, portada } = req.files
     const { titulo, descripcion } = req.body
     if (!req.files) return res.status(400).send('No se recibio un archivo')
     try {
-        const newEbook = new Ebook({ 
+        const newEbook = new Ebook({
             titulo: titulo,
-            descripcion: descripcion 
+            descripcion: descripcion
         })
-        newEbook.pdf = `ebooks/${newEbook._id}/${pdf.name}`
-        newEbook.portada = `ebooks/${newEbook._id}/${portada.name}`
-        await upload(pdf, newEbook.pdf, 'application/pdf')
-        await upload(portada, newEbook.portada)
+        if (req.files) {
+            const { pdf, portada } = req.files
+            if (req.files && req.files.pdf) {
+                newEbook.pdf = `ebooks/${newEbook._id}/${pdf.name}`
+                await upload(pdf, newEbook.pdf, 'application/pdf')
+            }
+            if (req.files && req.files.portada) {
+                newEbook.portada = `ebooks/${newEbook._id}/${portada.name}`
+                await upload(portada, newEbook.portada)
+            }
+        }
         await newEbook.save()
         res.status(200).send('Libro registrado correctamente')
     } catch (error) {
@@ -48,30 +54,38 @@ export const guardarPDF = async (req, res) => {
     }
 }
 
-export const buscarEbook = async(req, res) => {
+export const buscarEbook = async (req, res) => {
     const { id } = req.params
     const ebookFound = await Ebook.findById(id)
-    if (!ebookFound) return res.status(404).send('Ebook no encontrado')
-    let tmp = ebookFound.portada
-    ebookFound.portada = await getFileURL(tmp)
+    if (!ebookFound) return res.status(404).send('Ebook no encontrado');
+    if (ebookFound.portada) {
+        let tmp = ebookFound.portada
+        ebookFound.portada = await getFileURL(tmp)
+    }
+    if (ebookFound.pdf) {
+        let tmp = ebookFound.pdf
+        ebookFound.pdf = await getFileURL(tmp)
+    }
     return res.status(200).send(ebookFound)
 }
 
-export const editarEbook = async(req, res) => {
+export const editarEbook = async (req, res) => {
     const { id } = req.params
     const { titulo, descripcion } = req.body
-    const { pdf, portada } = req.files
     const ebookFound = await Ebook.findById(id)
     ebookFound.titulo = titulo
     ebookFound.descripcion = descripcion
     if (!ebookFound) return res.status(404).send('Ebook no encontrado')
-    if (pdf) {
-        ebookFound.pdf = `ebooks/${newEbook._id}/${pdf.name}`
-        await upload(ebookFound.pdf)
-    }
-    if (portada){
-        ebookFound.portada = `ebooks/${newEbook._id}/${portada.name}`
-        await upload(ebookFound.portada)
+    if (req.files) {
+        const { pdf, portada } = req.files
+        if (pdf) {
+            ebookFound.pdf = `ebooks/${ebookFound._id}/${pdf.name}`
+            await upload(pdf, ebookFound.pdf)
+        }
+        if (portada) {
+            ebookFound.portada = `ebooks/${ebookFound._id}/${portada.name}`
+            await upload(portada, ebookFound.portada)
+        }
     }
     await ebookFound.save()
 }
