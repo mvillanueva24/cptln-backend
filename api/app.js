@@ -24,7 +24,7 @@ const app = express()
 // }))
 
 
-// app.use(cors())
+app.use(cors())
 
 app.use(fileUpload({
     useTempFiles: true,
