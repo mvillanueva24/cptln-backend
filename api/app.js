@@ -16,7 +16,7 @@ const app = express()
 
 
 app.use(cors({
-    origin: 'https://felipe.josedev.net.pe/',
+    origin: process.env.FRONTEND_URL,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
