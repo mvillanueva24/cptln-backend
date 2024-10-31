@@ -21,6 +21,23 @@ export const cursosPagination = async (req, res) => {
     })
 }
 
+export const cursosCapitulosPagination = async(req, res) => {
+    const { idcurso } = req.params
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 2
+    const cursoFound = await Curso.findById(idcurso)
+    if (!cursoFound) return res.status(400).send('No encontrado');
+    const capitulosCurso = cursoFound.capitulos.slice((page - 1), (page - 1 + limit))
+    const totalCapitulosCurso = cursoFound.capitulos.length
+    if (capitulosCurso.length == 0) return res.status(400).send('Aun no hay capitulos');
+    return res.status(200).json({
+        capitulosCurso,
+        currentPage: page,
+        totalPages: Math.ceil(totalCapitulosCurso / limit),
+        totalCapitulosCurso
+    })
+}
+
 export const crearCurso = async (req, res) => {
     const { titulo, descripcion } = req.body
     try {
@@ -35,9 +52,9 @@ export const crearCurso = async (req, res) => {
 }
 
 export const crearCapituloCurso = async (req, res) => {
-    const { idcurso } = req.params
+    const { id } = req.params
     const { titulo, idyoutube } = req.body
-    const cursoFound = await Curso.findById(idcurso)
+    const cursoFound = await Curso.findById(id)
     if (!cursoFound) return res.status(404).send('No encontrado');
     const newCapitulo = new Capitulo({
         titulo: titulo,
@@ -47,19 +64,23 @@ export const crearCapituloCurso = async (req, res) => {
         const { pdf } = req.files
         const ruta = `cursos/${cursoFound._id}/${newCapitulo._id}/${pdf.name}`
         await upload(pdf, ruta)
+        newCapitulo.pdf = ruta
     }
+    cursoFound.capitulos.push(newCapitulo)
+    await cursoFound.save()
+    return res.status(200).send('OK')
 }
 
 export const buscarCursos = async (req, res) => {
-    const { id } = req.params
-    const cursoFound = await Curso.findById(id)
+    const { idcurso } = req.params
+    const cursoFound = await Curso.findById(idcurso)
     if (!cursoFound) return res.status(404).send('No encontrado');
     return res.status(200).send(cursoFound)
 }
 
 export const buscarContenidoDelCurso = async (req, res) => {
-    const { id } = req.params
-    const cursoFound = await Curso.findById(id)
+    const { idcurso } = req.params
+    const cursoFound = await Curso.findById(idcurso)
     if (!cursoFound) return res.status(404).send('No encontrado');
     return res.status(200).send(cursoFound.capitulos)
 }

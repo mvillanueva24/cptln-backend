@@ -13,6 +13,7 @@ import {
     editarPrograma, 
     editarContenidoDePrograma, 
     borrarPrograma, 
+    cambiarPosicionDelContenido
 } from '../controllers/programa.controller.js'
 
 const router = Router()
@@ -27,6 +28,7 @@ router.post('/programa',crearPrograma)
 router.post('/programa/categoria', programasPorCategoria)
 router.post('/programa/delete', borrarPrograma)
 router.post('/programa/editar/:id', editarPrograma)
+router.post('/programa/contenido/ordenar/:id', cambiarPosicionDelContenido)
 router.post('/programa/contenido/:idprograma/:id', editarContenidoDePrograma)
 router.post('/programa/nombre', buscarProgramaPorNombre)
 router.post('/programa/nombre/contenido', buscarProgramaConContenido)

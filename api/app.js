@@ -15,8 +15,15 @@ import cors from 'cors'
 const app = express()
 
 
+// app.use(cors({
+//     origin: 'https://felipe.josedev.net.pe',
+//     credentials: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//     allowedHeaders: ['Content-Type', 'Authorization'],
+// }))
+
 app.use(cors({
-    origin: 'https://felipe.josedev.net.pe',
+    origin: '*',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],

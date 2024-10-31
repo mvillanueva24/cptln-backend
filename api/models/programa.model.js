@@ -40,6 +40,9 @@ const programaSchema = new mongoose.Schema({
     color: {
         type: String
     },
+    portada: {
+        type: String
+    },
     enlace: {
         type: String
     },

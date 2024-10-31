@@ -7,14 +7,18 @@ import { Programa, Contenido } from '../models/programa.model.js'
 // }
 
 export const programas = async (req, res) => {
-    const programasFound = await Programa.find().limit(3)
+    const programasFound = await Programa.find().limit()
     for (const programa of programasFound) {
-        const imagenes = programa.imagenes
-        programa.imagenes = []
-        for (const imagen of imagenes) {
-            const ruta = await getFileURL(imagen.ruta)
-            programa.imagenes.push({ ruta: ruta, estado: imagen.estado })
+
+        if (programa.imagenes) {
+            const imagenes = programa.imagenes
+            programa.imagenes = []
+            for (const imagen of imagenes) {
+                const ruta = await getFileURL(imagen.ruta)
+                programa.imagenes.push({ ruta: ruta, estado: imagen.estado })
+            }
         }
+
     }
     return res.status(200).send(programasFound)
 }
@@ -37,12 +41,22 @@ export const buscarPrograma = async (req, res) => {
     const { id } = req.params
     const ProgramaFound = await Programa.findById(id)
     if (!ProgramaFound) return res.status(404).send('No encontrado')
-    const imagenes = ProgramaFound.imagenes
-    ProgramaFound.imagenes = []
-    for (const imagen of imagenes) {
-        const tmp = imagen.ruta
-        const ruta = await getFileURL(tmp)
-        ProgramaFound.imagenes.push({ ruta: ruta, estado: imagen.estado })
+    if (ProgramaFound.imagenes) {
+        const imagenes = ProgramaFound.imagenes
+        ProgramaFound.imagenes = []
+        for (const imagen of imagenes) {
+            const tmp = imagen.ruta
+            const ruta = await getFileURL(tmp)
+            ProgramaFound.imagenes.push({ ruta: ruta, estado: imagen.estado })
+        }
+    } else {
+        const tmp = ProgramaFound.enlace[0].portada
+        ProgramaFound.enlace[0].portada = await getFileURL(tmp)
+    }
+    if (ProgramaFound.portada){
+        const tmp = ProgramaFound.portada
+        ProgramaFound.portada = await getFileURL(tmp)
+
     }
     return res.status(200).send(ProgramaFound)
 }
@@ -70,19 +84,20 @@ export const buscarProgramaPorNombre = async (req, res) => {
     return res.status(200).send(ProgramaFound)
 }
 
-export const buscarProgramaConContenido = async(req, res) => {
+export const buscarProgramaConContenido = async (req, res) => {
     const { nombre } = req.body
     const customNombre = nombre.replace(/-/g, ' ');
     const ProgramaFound = await Programa.findOne({ titulo: { $regex: new RegExp(`^${customNombre.toLowerCase()}$`, "i") } })
     if (!ProgramaFound) return res.status(404).send('No encontrado')
-    const contenidos = ProgramaFound.contenido
-    console.log(ProgramaFound.contenido);
-    for (const contenido of Array.isArray(contenidos) ? contenidos : [contenidos]) {
-        const tmp = contenido.imagen
-        if (tmp) { // Verificamos si hay una imagen
-            contenido.imagen = await getFileURL(tmp); // Obtenemos la URL
-        } else {
-            contenido.imagen = null; // Si no hay imagen, establecemos como null
+    if (ProgramaFound.contenido) {
+        const contenidos = ProgramaFound.contenido
+        for (const contenido of Array.isArray(contenidos) ? contenidos : [contenidos]) {
+            const tmp = contenido.imagen
+            if (tmp) { // Verificamos si hay una imagen
+                contenido.imagen = await getFileURL(tmp); // Obtenemos la URL
+            } else {
+                contenido.imagen = null; // Si no hay imagen, establecemos como null
+            }
         }
     }
     return res.status(200).send(ProgramaFound)
@@ -93,9 +108,9 @@ export const buscarContenidoProgramaPagination = async (req, res) => {
     const page = parseInt(req.query.page) || 1
     const limit = parseInt(req.query.limit) || 2
     const ProgramaFound = await Programa.findById(id)
-    const contenidoPrograma = await ProgramaFound.contenido.slice((page - 1), (page - 1 + limit))
     const totalContenidoPrograma = ProgramaFound.contenido.length
-    if (contenidoPrograma.length == 0) return res.status(400).send('Aun no hay contenido')
+    if (ProgramaFound.contenido.length == 0) return res.status(400).send('Aun no hay contenido');
+    const contenidoPrograma = ProgramaFound.contenido.slice((page - 1), (page - 1 + limit))
     return res.status(200).json({
         contenidoPrograma,
         currentPage: page,
@@ -104,12 +119,12 @@ export const buscarContenidoProgramaPagination = async (req, res) => {
     })
 }
 
-export const buscarContenidoEspecifoPrograma = async(req, res) => {
+export const buscarContenidoEspecifoPrograma = async (req, res) => {
     const { idprograma, id } = req.params
     const ProgramaFound = await Programa.findById(idprograma)
-    if(!ProgramaFound) return res.status(404).send('No encontrado');
+    if (!ProgramaFound) return res.status(404).send('No encontrado');
     const ContenidoFound = ProgramaFound.contenido.find((contenido) => contenido._id.toString() === id)
-    if(!ContenidoFound) return res.status(404).send('Contenido no encontrado');
+    if (!ContenidoFound) return res.status(404).send('Contenido no encontrado');
     if (ContenidoFound.imagen) {
         const tmp = ContenidoFound.imagen
         ContenidoFound.imagen = await getFileURL(tmp)
@@ -128,21 +143,25 @@ export const crearPrograma = async (req, res) => {
             descripcion: descripcion,
             abreviatura: abreviatura,
             categoria: categoria,
-            enlace: enlace === undefined ? null : enlace
         })
-        if (enlace === "") {
+        if (enlace !== undefined) {
+            const { portada } = req.files
             newPrograma.imagenes = null
             newPrograma.contenido = null
+            const ruta = `programas/${titulo}/${portada.name}`
+            await upload(portada, ruta)
+            newPrograma.enlace.push({ portada: ruta, url: enlace })
         } else {
-            if (req.files) {
+            if (req.files && req.files.imagenes) {
+                newPrograma.portada = null
+                newPrograma.enlace = null
                 const { imagenes } = req.files
                 for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
                     const ruta = `programas/${titulo}/${imagen.name}`
                     await upload(imagen, ruta)
                     newPrograma.imagenes.push({
                         ruta: ruta,
-                        estado: true,
-                        abreviatura: abreviatura
+                        estadoHome: true,
                     })
                 }
             }
@@ -183,23 +202,25 @@ export const editarPrograma = async (req, res) => {
         ProgramaFound.categoria = categoria;
         ProgramaFound.descripcion = descripcion;
         ProgramaFound.color = color;
-        if (enlace === "") {
-            
+        if (enlace === undefined) {
             if (req.files && req.files.imagenes) {
                 const { imagenes } = req.files
                 ProgramaFound.imagenes = []
-                let countIndex = 0
-                for (const imagen of imagenes) {
-                    const ruta = `programas/${ProgramaFound.titulo}/${imagen.name}`
-                    await upload(ruta, imagen)
-                    ProgramaFound.imagenes.push({ ruta: ruta, estadoHome: `${countIndex == indexHome ? true : false}` })
-                    countIndex++
+                for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
+                    const ruta = `programas/${ProgramaFound.titulo}/portada/${imagen.name}`
+                    await upload(imagen, ruta)
+                    ProgramaFound.imagenes.push({ ruta: ruta, estadoHome: imagen.estadoHome })
                 }
             }
         } else {
-            console.log(`Hola`);
             ProgramaFound.imagenes = []
             ProgramaFound.enlace = enlace
+            if (req.files && req.files.portada) {
+                const { portada } = req.files
+                const ruta = `programas/${ProgramaFound.titulo}/${portada.name}`
+                await upload(portada, ruta)
+                ProgramaFound.portada = ruta
+            }
         }
         await ProgramaFound.save()
     } catch (error) {
@@ -209,12 +230,12 @@ export const editarPrograma = async (req, res) => {
 
 export const editarContenidoDePrograma = async (req, res) => {
     const { idprograma, id } = req.params
-    console.log('ID Programa: '+idprograma+', ID: '+id);
+    console.log('ID Programa: ' + idprograma + ', ID: ' + id);
     const { subtitulo, parrafo } = req.body
     const ProgramaFound = await Programa.findById(idprograma)
-    if(!ProgramaFound) return res.status(404).send('No encontrado');
+    if (!ProgramaFound) return res.status(404).send('No encontrado');
     const ContenidoFound = ProgramaFound.contenido.find((contenido) => contenido._id.toString() === id)
-    if(!ContenidoFound) return res.status(404).send('Contenido no encontrado');
+    if (!ContenidoFound) return res.status(404).send('Contenido no encontrado');
     ContenidoFound.subtitulo = subtitulo
     ContenidoFound.parrafo = parrafo
     if (req.files && req.files.imagen) {
@@ -225,6 +246,19 @@ export const editarContenidoDePrograma = async (req, res) => {
     }
     ProgramaFound.save()
     return res.status(200).send(ContenidoFound)
+}
+
+export const cambiarPosicionDelContenido = async (req, res) => {
+    const { id } = req.params
+    const { indexSeleccionado, indexInsertar } = req.body
+    const ProgramaFound = await Programa.findById(id)
+    const newItems = [...ProgramaFound.contenido];
+    const [draggedItem] = newItems.splice(indexSeleccionado, 1);
+    newItems.splice(indexInsertar, 0, draggedItem)
+    ProgramaFound.contenido = newItems
+    await ProgramaFound.save()
+    return res.status(200).send(newItems)
+
 }
 
 export const borrarPrograma = async (req, res) => {
@@ -244,9 +278,9 @@ export const borrarPrograma = async (req, res) => {
     }
 }
 
-export const borrarContenido = async(req, res) => {
+export const borrarContenido = async (req, res) => {
     const { idprograma, id } = req.params
     const programaFound = await Programa.findById(idprograma)
     if (!programaFound) return res.status(404).send('No encontrado');
-    
+
 }
