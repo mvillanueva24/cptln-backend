@@ -2,16 +2,12 @@ import mongoose from "mongoose";
 const eventoSchema = new mongoose.Schema({
     titulo: {
         type: String,
-        required: true,
-        trim: true,
     },
     cuerpo: {
         type: String,
-        required: true,
     },
     ubicacion: {
         type: String,
-        required: true
     },
     fecha: {
         type: String,
@@ -27,4 +23,5 @@ const eventoSchema = new mongoose.Schema({
     timestamps: true
 })
 
-export default mongoose.model('Evento', eventoSchema)
+const Evento =  mongoose.model('Evento', eventoSchema)
+export default Evento

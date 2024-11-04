@@ -1,19 +1,10 @@
 import mongoose from "mongoose";
-const imagenSchema = new mongoose.Schema({
-    ruta: {
-        type: String,
-        required: true
-    },
-    estado: {
-        type: Boolean,
-        default: false
-    }
-});
 
 const categoriaSchema = new mongoose.Schema({
     nombre: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     descripcion: {
         type: String
@@ -21,10 +12,17 @@ const categoriaSchema = new mongoose.Schema({
     color: {
         type: String
     },
-    imagenes: {
-        type: [imagenSchema],
-        default: []
+    indicePortada: {
+        type: Number,
+        default: 1
     },
+    imagenes: {
+        type: [String],
+    },
+    estado: {
+        type: Boolean,
+        default: true
+    }
 },
     {
         timestamps: true

@@ -8,6 +8,7 @@ import ebooksRoutes from './routes/ebooks.routes.js'
 import programasRoutes from './routes/programas.routes.js'
 import solicitudesRoutes from './routes/seguidor.routes.js'
 import cursosRoutes from './routes/cursos.routes.js'
+import radioRouter from './routes/radio.routes.js'
 import cookieParser from 'cookie-parser'
 import fileUpload from 'express-fileupload'
 import cors from 'cors'
@@ -15,12 +16,12 @@ import cors from 'cors'
 const app = express()
 
 
-app.use(cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-}))
+// app.use(cors({
+//     origin: process.env.FRONTEND_URL,
+//     credentials: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//     allowedHeaders: ['Content-Type', 'Authorization'],
+// }))
 
 // app.use(cors({
 //     origin: 'http://localhost:5173',
@@ -30,7 +31,7 @@ app.use(cors({
 // }))
 
 
-// app.use(cors())
+app.use(cors())
 
 app.use(fileUpload({
     useTempFiles: true,
@@ -53,7 +54,8 @@ app.use('/api', [
     ebooksRoutes,
     programasRoutes,
     solicitudesRoutes,
-    cursosRoutes
+    cursosRoutes,
+    radioRouter
 ])
 
 export default app

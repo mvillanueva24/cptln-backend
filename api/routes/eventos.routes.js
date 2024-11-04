@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { eventos, eventosPagination, buscarEvento, crearEvento, editarEvento, estadoEvento } from '../controllers/evento.controller.js'
+import { eventos, eventosPagination, buscarEvento, crearEvento, editarEvento, eliminarEvento } from '../controllers/evento.controller.js'
 
 const router = Router()
 
@@ -8,7 +8,7 @@ router.get('/eventos/pagination',eventosPagination)
 router.get('/eventos/:id',buscarEvento)
 
 router.post('/eventos',crearEvento)
-router.post('/eventos/delete',estadoEvento)
+router.post('/eventos/delete',eliminarEvento)
 router.post('/eventos/:id',editarEvento)
 
 export default router

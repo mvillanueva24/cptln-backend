@@ -1,110 +1,143 @@
 import Categoria from "../models/categoria.model.js"
 import { getFileURL, upload } from '../../api/aws/s3.js'
+
+
 export const categorias = async (req, res) => {
-    const categorias = await Categoria.find()
-    for (const categoria of categorias) {
-        for (const imagen of categoria.imagenes){
-            const tmp = imagen.ruta
-            // console.log(tmp);
-            imagen.ruta = await getFileURL(tmp)
+    const { limit } = req.query
+    try {
+        const categorias = await Categoria.find().limit(limit ? limit : null)
+        if (!categorias) return res.status(400).send('Sin categorias');
+        for (const categoria of categorias) {
+            if (categoria.imagenes) {
+                const imagenes = categoria.imagenes
+                categoria.imagenes = []
+                for (const imagen of imagenes) {
+                    const tmp = imagen
+                    const ruta = await getFileURL(tmp)
+                    categoria.imagenes.push(ruta)
+                }
+            }
         }
+        return res.status(200).send(categorias)
+    } catch (error) {
+        console.log(error);
+        return res.status(200).send('Ocurrio un error')
     }
-    if (!categorias) return res.status(400).send('Sin categorias')
-    return res.status(200).send(categorias)
+
 }
 
 export const categoriasPagination = async (req, res) => {
-    const page = parseInt(req.query.page) || 1
-    const limit = parseInt(req.query.limit) || 2
-    const categorias = await Categoria.find().skip((page - 1) * limit).limit(limit)
-    const totalCategorias = await Categoria.countDocuments()
-    if (categorias.length == 0) return res.status(400).send('Aun no hay categorias')
-    return res.status(200).json({
-        categorias,
-        currentPage: page,
-        totalPages: Math.ceil(totalCategorias / limit),
-        totalCategorias
-    })
+    try {
+        const page = parseInt(req.query.page) || 1
+        const limit = parseInt(req.query.limit) || 2
+        const categorias = await Categoria.find().skip((page - 1) * limit).limit(limit)
+        const totalCategorias = await Categoria.countDocuments()
+        if (categorias.length == 0) return res.status(400).send('Aun no hay categorias')
+        return res.status(200).json({
+            categorias,
+            currentPage: page,
+            totalPages: Math.ceil(totalCategorias / limit),
+            totalCategorias
+        })
+    } catch (error) {
+        console.log(error);
+        return res.status(200).send('Ocurrio un error')
+    }
 }
 
 export const crearCategoria = async (req, res) => {
     const { nombre, descripcion, color } = req.body
-    const newCategoria = new Categoria({
-        nombre: nombre,
-        descripcion: descripcion,
-        color: color
-    })
-    if (req.files) {
-        const { imagenes } = req.files
-        for (let index = 0; imagenes.length > index; index++) {
-            const ruta = `categorias/${newCategoria.nombre}/${index}/${imagenes[index].name}`
-            await upload(imagenes[index], ruta)
-            newCategoria.imagenes.push({ruta})
+    try {
+        const newCategoria = new Categoria({
+            nombre: nombre,
+            descripcion: descripcion,
+            color: color
+        })
+        if (req.files && req.files.imagenes) {
+            const { imagenes } = req.files
+            let count = 0
+            for (const imagen of imagenes) {
+                const ruta = `categorias/${newCategoria.nombre}/${count}/${imagen.name}`
+                await upload(imagen, ruta)
+                newCategoria.imagenes.push(ruta)
+                count++
+            }
         }
+        await newCategoria.save()
+        return res.status(200).send('OK')
+    } catch (error) {
+        console.log(error);
+        return res.status(200).send('Ocurrio un error')
     }
-    await newCategoria.save()
-    return res.status(200).send('Categoria creada')
+
 }
 
 export const editarCategoria = async (req, res) => {
-    console.log(req.files);
-    const { id } = req.params
-    const { nombre, descripcion, color } = req.body
-    const categoriaFound = await Categoria.findById(id)
-    categoriaFound.nombre = nombre
-    categoriaFound.descripcion = descripcion
-    categoriaFound.color = color
-    if (!categoriaFound) return res.status(404).send('Categoria no encontrada')
-    // if (portadaIndex) {
-    //     for (let index = 0; categoriaFound.imagenes.length > index; index++) {
-    //         if (index == portadaIndex){
-    //             categoriaFound.imagenes[index].estado = true
-    //         } else {
-    //             categoriaFound.imagenes[index].estado = false
-    //         }
-    //     }
-    // }
-    if (req.files) {
-        const { imagenes } = req.files
-        categoriaFound.imagenes = []
-        for (let index = 0; imagenes.length > index; index++) {
-            const ruta = `categorias/${categoriaFound.nombre}/${index}/${imagenes[index].name}`
-            await upload(imagenes[index], ruta)
-            categoriaFound.imagenes.push({ruta})
+    try {
+        const { id } = req.params
+        const { nombre, descripcion, color, indicePortada } = req.body
+        const categoriaFound = await Categoria.findById(id)
+        if (!categoriaFound) return res.status(404).send('Categoria no encontrada')
+        if (nombre) categoriaFound.nombre = nombre;
+        if (descripcion) categoriaFound.descripcion = descripcion;
+        if (color) categoriaFound.color = color;
+        if (indicePortada) categoriaFound.indicePortada = indicePortada;
+        if (req.files && req.files.imagenes) {
+            const { imagenes } = req.files
+            categoriaFound.imagenes = []
+            let count = 0
+            for (const imagen of imagenes) {
+                const ruta = `categorias/${categoriaFound.nombre}/${count}/${imagen.name}`
+                await upload(imagen, ruta)
+                categoriaFound.imagenes.push(ruta)
+                count++
+            }
         }
+        await categoriaFound.save()
+        return res.status(200).send('Modificado correctamente')
+    } catch (error) {
+        console.log(error);
+        return res.status(200).send('Ocurrio un error')
     }
-    await categoriaFound.save()
-    return res.status(200).send('Modificado correctamente')
 }
 
 export const buscarCategoria = async (req, res) => {
     const { id } = req.params
-    const categoriaFound = await Categoria.findById(id)
-    if (!categoriaFound) return res.status(404).send('Categoria no encontrada')
-    if (categoriaFound.imagenes) {
-        const imagenes = categoriaFound.imagenes
-        categoriaFound.imagenes = []
-        for (const imagen of imagenes){
-            const ruta = await getFileURL(imagen.ruta)
-            categoriaFound.imagenes.push({ruta: ruta , estado: imagen.estado})
+    try {
+        const categoriaFound = await Categoria.findById(id)
+        if (!categoriaFound) return res.status(404).send('Categoria no encontrada')
+        if (categoriaFound.imagenes) {
+            const imagenes = categoriaFound.imagenes
+            categoriaFound.imagenes = []
+            for (const imagen of imagenes) {
+                const ruta = await getFileURL(imagen.ruta)
+                categoriaFound.imagenes.push(ruta)
+            }
         }
+        return res.status(200).send(categoriaFound)
+    } catch (error) {
+        console.log(error);
+        return res.status(200).send('Ocurrio un error')
     }
-    return res.status(200).send(categoriaFound)
 }
 
 export const buscarCategoriaPorNombre = async (req, res) => {
     const { nombre } = req.body
-    console.log(nombre);
     const customNombre = nombre.replace(/-/g, ' ');
-    console.log(customNombre);
-    const categoriaFound = await Categoria.find({nombre: { $regex: new RegExp(`^${customNombre.toLowerCase()}$`, "i") }})
-    console.log(categoriaFound);
+    const categoriaFound = await Categoria.find({ nombre: { $regex: new RegExp(`^${customNombre.toLowerCase()}$`, "i") } })
     if (!categoriaFound) { return res.status(404).send('Categoria no encontrada') }
     return res.status(200).send(categoriaFound)
 }
+
 export const eliminarCategoria = async (req, res) => {
     const { id } = req.body
-    const categoriaFound = await Categoria.findByIdAndDelete(id)
-    if (!categoriaFound) return res.status(404).send('No se encontro la categoria')
-    return res.status(200).send('Categoria eliminada correctamente')
+    try {
+        const categoriaFound = await Categoria.findById(id)
+        if (!categoriaFound) return res.status(404).send('No encontrado');
+        await Categoria.findByIdAndDelete(id)
+        return res.status(200).send('Eliminado correctamente')
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send('Ocurrio un error')
+    }
 }

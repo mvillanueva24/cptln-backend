@@ -52,4 +52,4 @@ const Radio = mongoose.model('Radio',radioSchema)
 const SeccionRadio = mongoose.model('SeccionRadio',seccionSchema)
 const ContenidoSeccionRadio = mongoose.model('ContenidoSeccionRadio',contenidoSeccionSchema)
 
-export default {Radio, SeccionRadio, ContenidoSeccionRadio}
+export {Radio, SeccionRadio, ContenidoSeccionRadio}

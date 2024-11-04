@@ -12,7 +12,6 @@ const ebookSchema = new mongoose.Schema({
     },
     pdf: {
         type: String,
-        required: true
     },
 },
     {
@@ -20,4 +19,6 @@ const ebookSchema = new mongoose.Schema({
     }
 )
 
-export default mongoose.model('Ebook', ebookSchema)
+const Ebook = mongoose.model('Ebook', ebookSchema)
+
+export default Ebook

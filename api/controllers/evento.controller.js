@@ -1,46 +1,58 @@
 import Evento from "../models/evento.model.js"
 
 export const eventos = async (req, res) => {
-    const eventos = await Evento.find().sort({ fecha: -1 })
+    const { limit } = req.query
+    const eventos = await Evento.find().sort({ fecha: -1 }).limit(limit ? limit : null)
     if (eventos.length == 0) return res.status(400).send('Aun no hay eventos')
     return res.status(200).send(eventos)
 }
 
-export const eventosPagination = async(req, res) => {
-    const page = parseInt(req.query.page) || 1
-    const limit = parseInt(req.query.limit) || 2
-    const eventos = await Evento.find().sort({ fecha: -1 }).skip((page - 1) * limit).limit(limit)
-    const totalEventos = await Evento.countDocuments()
-    if (eventos.length == 0) return res.status(400).send('Aun no hay eventos')
-    return res.status(200).json({
-        eventos,
-        currentPage: page,
-        totalPages: Math.ceil(totalEventos/limit),
-        totalEventos
-    })
+export const eventosPagination = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1
+        const limit = parseInt(req.query.limit) || 2
+        const eventos = await Evento.find().sort({ fecha: -1 }).skip((page - 1) * limit).limit(limit)
+        const totalEventos = await Evento.countDocuments()
+        if (eventos.length == 0) return res.status(400).send('Aun no hay eventos')
+        return res.status(200).json({
+            eventos,
+            currentPage: page,
+            totalPages: Math.ceil(totalEventos / limit),
+            totalEventos
+        })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send('Ocurrio un error')
+    }
 }
 
 export const buscarEvento = async (req, res) => {
     const { id } = req.params
-    const eventFound = await Evento.findById(id)
-    if (!eventFound) return res.status(404).send('Evento no encontrado')
-    return res.status(200).send(eventFound)
+    try {
+        const eventFound = await Evento.findById(id)
+        if (!eventFound) return res.status(404).send('Evento no encontrado');
+        return res.status(200).send(eventFound)
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send('Ocurrio un error')
+    }
+
 }
 
 export const crearEvento = async (req, res) => {
     const { titulo, cuerpo, fecha, hora, ubicacion } = req.body
     try {
-        const newEvent = new Evento({
+        await new Evento({
             titulo: titulo,
             cuerpo: cuerpo,
             fecha: fecha,
             hora: hora,
             ubicacion: ubicacion
-        })
-        await newEvent.save()
+        }).save()
         return res.status(200).send('Evento creado exitosamente')
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        return res.status(500).send('Ocurrio un error')
     }
 }
 
@@ -54,27 +66,22 @@ export const editarEvento = async (req, res) => {
             { new: true }
         )
         if (!EventoFound) return res.status(404).send('Evento no encontrado')
-        return res.status(200).send('Evento modificado exitosamente')
+        return res.status(200).send('OK')
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        return res.status(200).send('Ocurrio un error')
     }
 }
 
-export const estadoEvento = async (req, res) => {
-    const { id } = req.body
+export const eliminarEvento = async (req, res) => {
+    const { id } = req.query
     try {
-        const EventoFound = await Evento.findById(id)
-        if (!EventoFound) return res.status(404).send('Devocional no encontrado')
-        const updateData = {
-            estado: !EventoFound.estado
-        }
-        await Evento.findByIdAndUpdate(
-            id,
-            updateData,
-            { new: true }
-        )
+        const eventFound = await Evento.findById(id)
+        if (!eventFound) return res.status(404).send('No encontrado');
+        await Evento.findByIdAndDelete(id)
         return res.status(200).send('Eliminado exitosamente')
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        return res.status(200).send('Ocurrio un error')
     }
 }

@@ -2,8 +2,6 @@ import mongoose from "mongoose";
 const NoticiaSchema = new mongoose.Schema({
     titulo: {
         type: String,
-        required: true,
-        trim: true,
     },
     cuerpo: {
         type: String
@@ -14,7 +12,7 @@ const NoticiaSchema = new mongoose.Schema({
     portada: {
         type: String
     },
-    programaRef: {
+    programa_id: {
         type: String
     },
     imagenes:{

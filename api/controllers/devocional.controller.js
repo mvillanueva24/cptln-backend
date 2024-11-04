@@ -3,58 +3,81 @@ import { upload, getFileURL } from '../aws/s3.js'
 
 // Obtener devocionales
 export const devocionales = async (req, res) => {
-    const devocionales = await Devocional.find().sort({ fecha: -1 })
-    if (devocionales.length === 0) return res.status(400).send('Aun no hay devocionales')
-    return res.status(200).send(devocionales)
+    const { limit } = req.query
+    try {
+        const devocionales = await Devocional.find().sort({ fecha: -1 }).limit(limit ? limit : null)
+        if (devocionales.length === 0) return res.status(400).send('Aun no hay devocionales');
+        return res.status(200).send(devocionales)
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send('Ocurrio un error')
+    }
+
 }
 
 export const devocionalesPagination = async (req, res) => {
-    const page = parseInt(req.query.page) || 1
-    const limit = parseInt(req.query.limit) || 2
-    const devocionales = await Devocional.find().sort({ fecha: -1 }).skip((page - 1) * limit).limit(limit)
-    const totalDevocionales = await Devocional.countDocuments()
-    if (devocionales.length == 0) return res.status(400).send('Aun no hay eventos')
-    return res.status(200).json({
-        devocionales,
-        currentPage: page,
-        totalPages: Math.ceil(totalDevocionales / limit),
-        totalDevocionales
-    })
+    try {
+        const page = parseInt(req.query.page) || 1
+        const limit = parseInt(req.query.limit) || 2
+        const devocionales = await Devocional.find().sort({ fecha: -1 }).skip((page - 1) * limit).limit(limit)
+        const totalDevocionales = await Devocional.countDocuments()
+        if (devocionales.length == 0) return res.status(400).send('Aun no hay eventos')
+        return res.status(200).json({
+            devocionales,
+            currentPage: page,
+            totalPages: Math.ceil(totalDevocionales / limit),
+            totalDevocionales
+        })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send('Ocurrio un error')
+    }
+
 }
 
-// Obtener devocional de hoy
 export const devocionalHoy = async (req, res) => {
     const date = new Date()
     const hoy = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-    const devocional = await Devocional.findOne({ fecha: { $lte: hoy } }).sort({ fecha: -1 })
-    if (!devocional) return res.status(404).send('No se encontro el devocional de hoy')
-    const { audioURL, imagenURL } = devocional
-    if (audioURL) {
-        const tmp = audioURL
-        devocional.audioURL = await getFileURL(tmp)
+    try {
+        const devocional = await Devocional.findOne({ fecha: { $lte: hoy } }).sort({ fecha: -1 })
+        if (!devocional) return res.status(404).send('No se encontro el devocional de hoy');
+        const { audioURL, imagenURL } = devocional
+        if (audioURL) {
+            const tmp = audioURL
+            devocional.audioURL = await getFileURL(tmp)
+        }
+        if (imagenURL) {
+            const tmp = imagenURL
+            devocional.imagenURL = await getFileURL(tmp)
+        }
+        return res.status(200).send(devocional)
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send('Ocurrio un error')
     }
-    if (imagenURL) {
-        const tmp = imagenURL
-        devocional.imagenURL = await getFileURL(tmp)
-    }
-    return res.status(200).send(devocional)
+
 }
 
 // Buscar devocional especifico
 export const devocionalFound = async (req, res) => {
     const { id } = req.params
     const devocional = await Devocional.findOne({ _id: id })
-    if (!devocional) return res.status(404).send('No se encontro el devocional')
-    const { audioURL, imagenURL } = devocional
-    if (audioURL) {
-        const tmp = audioURL
-        devocional.audioURL = await getFileURL(tmp)
+    if (!devocional) return res.status(404).send('No se encontro el devocional');
+    try {
+        const { audioURL, imagenURL } = devocional
+        if (audioURL) {
+            const tmp = audioURL
+            devocional.audioURL = await getFileURL(tmp)
+        }
+        if (imagenURL) {
+            const tmp = imagenURL
+            devocional.imagenURL = await getFileURL(tmp)
+        }
+        return res.status(200).send(devocional)
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send('Ocurrio un error')
     }
-    if (imagenURL) {
-        const tmp = imagenURL
-        devocional.imagenURL = await getFileURL(tmp)
-    }
-    return res.status(200).send(devocional)
 }
 
 // Crear devocional
@@ -84,11 +107,11 @@ export const crearDevocional = async (req, res) => {
         await newDevocional.save()
         res.status(200).send('Devocional creado exitosamente')
     } catch (error) {
-        console.log(error);
+        console.log(error)
+        return res.status(500).send('Ocurrio un error')
     }
 }
 
-// Editar devocional
 export const editarDevocional = async (req, res) => {
     const { id } = req.params
     const { titulo, parrafo, versiculo, fecha } = req.body
@@ -119,24 +142,19 @@ export const editarDevocional = async (req, res) => {
         res.status(200).send('Devocional modificado exitosamente')
     } catch (error) {
         console.log(error)
+        return res.status(500).send('Ocurrio un error')
     }
 }
 
 export const cambiarEstadoDevocional = async (req, res) => {
-    const { id } = req.body
+    const { id } = req.query
     try {
         const DevocionalFound = await Devocional.findById(id)
         if (!DevocionalFound) return res.status(404).send('Devocional no encontrado')
-        const updateData = {
-            estado: !DevocionalFound.estado
-        }
-        await Devocional.findByIdAndUpdate(
-            id,
-            updateData,
-            { new: true }
-        )
+        await Devocional.findByIdAndDelete(id)
         return res.status(200).send('Eliminado exitosamente')
     } catch (error) {
         console.log(error)
+        return res.status(500).send('Ocurrio un error')
     }
 }

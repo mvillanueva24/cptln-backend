@@ -1,15 +1,5 @@
 import mongoose from "mongoose";
-
-const imagenSchema = new mongoose.Schema({
-    ruta: {
-        type: String,
-        required: true
-    },
-    estadoHome: {
-        type: Boolean,
-        default: false
-    },
-});
+import Categoria from "./categoria.model.js"
 
 const contenidoSchema = new mongoose.Schema({
     subtitulo: {
@@ -31,8 +21,9 @@ const programaSchema = new mongoose.Schema({
     abreviatura: {
         type: String
     },
-    categoria: {
-        type: String
+    categoria_id: {
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: "Categoria",
     },
     descripcion: {
         type: String
@@ -40,7 +31,11 @@ const programaSchema = new mongoose.Schema({
     color: {
         type: String
     },
-    portada: {
+    indicePortada: {
+        type: String,
+        default: "1"
+    },
+    portadaEnlace: {
         type: String
     },
     enlace: {
@@ -48,11 +43,9 @@ const programaSchema = new mongoose.Schema({
     },
     contenido:{
         type: [contenidoSchema],
-        default: []
     },
     imagenes: {
-        type: [imagenSchema],
-        default: []
+        type: [String],
     }
 },
     {
