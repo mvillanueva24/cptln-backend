@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import { Programa } from "./programa.model.js";
+
 const NoticiaSchema = new mongoose.Schema({
     titulo: {
         type: String,
@@ -13,7 +15,9 @@ const NoticiaSchema = new mongoose.Schema({
         type: String
     },
     programa_id: {
-        type: String
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: "Programa",
+        required: false
     },
     imagenes:{
         type: [String]

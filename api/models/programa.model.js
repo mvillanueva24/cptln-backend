@@ -24,6 +24,7 @@ const programaSchema = new mongoose.Schema({
     categoria_id: {
         type: mongoose.Schema.Types.ObjectId, 
         ref: "Categoria",
+        required: false
     },
     descripcion: {
         type: String
@@ -35,8 +36,8 @@ const programaSchema = new mongoose.Schema({
         type: String,
         default: "1"
     },
-    portadaEnlace: {
-        type: String
+    imagenesEnlace: {
+        type: [String]
     },
     enlace: {
         type: String

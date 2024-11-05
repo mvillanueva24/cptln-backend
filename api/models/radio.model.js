@@ -1,11 +1,6 @@
 import mongoose from "mongoose";
 
-
-
 const contenidoSeccionSchema = new mongoose.Schema({
-    nombre: {
-        type: String
-    },
     descripcion: {
         type: String
     },
@@ -24,7 +19,7 @@ const seccionSchema = new mongoose.Schema({
     nombre: {
         type: String
     },
-    contenido: {
+    contenidos: {
         type: [contenidoSeccionSchema]
     }
 })
@@ -37,19 +32,26 @@ const radioSchema = new mongoose.Schema({
     descripcion: {
         type: String
     },
+    videoHome: {
+        type: String
+    },
     imagenes: {
         type: [String]
     },
-    portada: {
+    portadaIndice: {
         type: [String]
     },
     secciones: {
         type: [seccionSchema]
     }
-})
+},
+    {
+        timestamps: true
+    }
+)
 
-const Radio = mongoose.model('Radio',radioSchema)
-const SeccionRadio = mongoose.model('SeccionRadio',seccionSchema)
-const ContenidoSeccionRadio = mongoose.model('ContenidoSeccionRadio',contenidoSeccionSchema)
+const Radio = mongoose.model('Radio', radioSchema)
+const SeccionRadio = mongoose.model('SeccionRadio', seccionSchema)
+const ContenidoSeccionRadio = mongoose.model('ContenidoSeccionRadio', contenidoSeccionSchema)
 
-export {Radio, SeccionRadio, ContenidoSeccionRadio}
+export { Radio, SeccionRadio, ContenidoSeccionRadio }

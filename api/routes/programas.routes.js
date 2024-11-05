@@ -13,7 +13,8 @@ import {
     editarPrograma, 
     editarContenidoDePrograma, 
     borrarPrograma, 
-    cambiarPosicionDelContenido
+    cambiarPosicionDelContenido,
+    programasCliente
 } from '../controllers/programa.controller.js'
 
 const router = Router()
@@ -32,6 +33,9 @@ router.post('/programa/contenido/ordenar/:id', cambiarPosicionDelContenido)
 router.post('/programa/contenido/:idprograma/:id', editarContenidoDePrograma)
 router.post('/programa/nombre', buscarProgramaPorNombre)
 router.post('/programa/nombre/contenido', buscarProgramaConContenido)
+
+//Cliente
+router.get('/client/programa',programasCliente)
 
 
 export default router

@@ -93,7 +93,6 @@ export const buscarEbook = async (req, res) => {
 export const editarEbook = async (req, res) => {
     const { id } = req.params
     const { titulo, descripcion } = req.body
-    console.log(req.files);
     try {
         const ebookFound = await Ebook.findById(id)
         if (!ebookFound) return res.status(404).send('Ebook no encontrado');

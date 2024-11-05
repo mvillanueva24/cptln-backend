@@ -89,7 +89,6 @@ export const solicitudOracion = async(req, res) => {
 
 export const solicitudEbooks = async(req, res) => {
     const { nombres, apellidos, correo, motivo} = req.body
-    console.log(req.body);
     await new Seguidor({
         nombres: nombres,
         apellidos: apellidos,

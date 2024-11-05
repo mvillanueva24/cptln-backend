@@ -1,6 +1,6 @@
 import Categoria from "../models/categoria.model.js"
 import { getFileURL, upload } from '../../api/aws/s3.js'
-
+import { Programa } from '../models/programa.model.js'
 
 export const categorias = async (req, res) => {
     const { limit } = req.query
@@ -134,6 +134,13 @@ export const eliminarCategoria = async (req, res) => {
     try {
         const categoriaFound = await Categoria.findById(id)
         if (!categoriaFound) return res.status(404).send('No encontrado');
+        const programas = await Programa.find({ categoria_id: id})
+        if (programas.length > 0){
+            for (const programa of programas){
+                programa.categoria_id = null
+                await programa.save()
+            }
+        }
         await Categoria.findByIdAndDelete(id)
         return res.status(200).send('Eliminado correctamente')
     } catch (error) {

@@ -1,4 +1,5 @@
 import { getFileURL, upload } from '../aws/s3.js'
+import Categoria from '../models/categoria.model.js'
 import { Programa, Contenido } from '../models/programa.model.js'
 import mongoose from 'mongoose'
 
@@ -12,11 +13,18 @@ export const programas = async (req, res) => {
                 const imagenes = programa.imagenes
                 programa.imagenes = []
                 for (const imagen of imagenes) {
-                    const ruta = await getFileURL(imagen.ruta)
-                    programa.imagenes.push({ ruta: ruta, estado: imagen.estado })
+                    const ruta = await getFileURL(imagen)
+                    programa.imagenes.push(ruta)
                 }
             }
-
+            if (programa.imagenesEnlace) {
+                const imagenes = programa.imagenesEnlace
+                programa.imagenes = []
+                for (const imagen of imagenes) {
+                    const ruta = await getFileURL(imagen)
+                    programa.imagenes.push(ruta)
+                }
+            }
         }
         return res.status(200).send(programasFound)
     } catch (error) {
@@ -49,17 +57,22 @@ export const buscarPrograma = async (req, res) => {
     try {
         const ProgramaFound = await Programa.findById(id)
         if (!ProgramaFound) return res.status(404).send('No encontrado');
-        if (ProgramaFound.imagenes) {
-            const imagenes = ProgramaFound.imagenes
-            ProgramaFound.imagenes = []
-            for (const imagen of imagenes) {
-                const tmp = imagen
-                const ruta = await getFileURL(tmp)
-                ProgramaFound.imagenes.push(ruta)
+        if (ProgramaFound.imagenesEnlace) {
+            const imagenes = ProgramaFound.imagenesEnlace
+            ProgramaFound.imagenesEnlace = []
+            for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
+                const ruta = await getFileURL(imagen)
+                ProgramaFound.imagenesEnlace.push(ruta)
             }
         } else {
-            const tmp = ProgramaFound.portadaEnlace
-            ProgramaFound.portadaEnlace = await getFileURL(tmp)
+            if (ProgramaFound.imagenes) {
+                const imagenes = ProgramaFound.imagenes
+                ProgramaFound.imagenes = []
+                for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
+                    const ruta = await getFileURL(imagen)
+                    ProgramaFound.imagenes.push(ruta)
+                }
+            }
         }
         return res.status(200).send(ProgramaFound)
     } catch (error) {
@@ -72,7 +85,8 @@ export const programasPorCategoria = async (req, res) => {
     const { nombre } = req.body
     const customNombre = nombre.replace(/-/g, ' ');
     try {
-        const programasFound = await Programa.find({ categoria: { $regex: new RegExp(`^${customNombre.toLowerCase()}$`, "i") } })
+        const categoriaFound = await Categoria.findOne({ nombre: { $regex: new RegExp(`^${customNombre.toLowerCase()}$`, "i") } })
+        const programasFound = await Programa.find({ categoria_id: categoriaFound._id })
         if (programasFound.length == 0) return res.status(400).send('Sin resultados')
         for (const programa of programasFound) {
             if (programa.imagenes) {
@@ -89,7 +103,6 @@ export const programasPorCategoria = async (req, res) => {
         console.log(error);
         return res.status(500).send('Ocurrio un error')
     }
-
 }
 
 export const buscarProgramaPorNombre = async (req, res) => {
@@ -101,7 +114,15 @@ export const buscarProgramaPorNombre = async (req, res) => {
         if (ProgramaFound.imagenes) {
             const imagenes = ProgramaFound.imagenes
             ProgramaFound.imagenes = []
-            for (const imagen of imagenes) {
+            for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
+                const ruta = await getFileURL(imagen)
+                ProgramaFound.imagenes.push(ruta)
+            }
+        }
+        if (ProgramaFound.imagenesEnlace) {
+            const imagenes = ProgramaFound.imagenesEnlace
+            ProgramaFound.imagenes = []
+            for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
                 const ruta = await getFileURL(imagen)
                 ProgramaFound.imagenes.push(ruta)
             }
@@ -186,21 +207,23 @@ export const crearPrograma = async (req, res) => {
             color: color,
             descripcion: descripcion,
             abreviatura: abreviatura,
-            categoria_id: categoria_id
+            categoria_id: categoria_id ? categoria_id : null
         })
         if (enlace !== undefined) {
-            if (req.files && req.files.portadaEnlace) {
-                const { portadaEnlace } = req.files
+            newPrograma.enlace = enlace
+            if (req.files && req.files.imagenesEnlace) {
+                const { imagenesEnlace } = req.files
                 newPrograma.imagenes = null
                 newPrograma.contenido = null
-                newPrograma.enlace = enlace
-                const ruta = `programas/${titulo}/${portadaEnlace.name}`
-                await upload(portadaEnlace, ruta)
-                newPrograma.portadaEnlace = ruta
+                for(const imagen of Array.isArray(imagenesEnlace) ? imagenesEnlace : [imagenesEnlace]) {
+                    const ruta = `programas/${titulo}/${imagen.name}`
+                    await upload(imagen, ruta)
+                    newPrograma.imagenesEnlace = ruta
+                }
             }
         } else {
             if (req.files && req.files.imagenes) {
-                newPrograma.portadaEnlace = null
+                newPrograma.imagenesEnlace = null
                 newPrograma.enlace = null
                 const { imagenes } = req.files
                 let count = 0
@@ -247,21 +270,23 @@ export const agregarContenidoPrograma = async (req, res) => {
 export const editarPrograma = async (req, res) => {
     const { id } = req.params
     const { titulo, abreviatura, categoria_id, descripcion, color, enlace } = req.body
+    console.log(req.body);
+    console.log(req.files);
     try {
         const ProgramaFound = await Programa.findById(id)
         if (!ProgramaFound) return res.status(200).send('No encontrado');
         if (titulo) ProgramaFound.titulo = titulo;
         if (abreviatura) ProgramaFound.abreviatura = abreviatura;
-        if (categoria_id) ProgramaFound.categoria_id = mongoose.Types.ObjectId(categoria_id);
+        if (categoria_id) ProgramaFound.categoria_id = categoria_id ? categoria_id : null;
         if (descripcion) ProgramaFound.descripcion = descripcion;
         if (color) ProgramaFound.color = color;
         if (enlace === undefined) {
             ProgramaFound.enlace = null
-            ProgramaFound.imagenes = []
             if (req.files && req.files.imagenes) {
+                ProgramaFound.imagenes = []
                 const { imagenes } = req.files
                 ProgramaFound.enlace = null
-                ProgramaFound.portadaEnlace = null
+                ProgramaFound.imagenesEnlace = null
                 for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
                     const ruta = `programas/${ProgramaFound.titulo}/portada/${imagen.name}`
                     await upload(imagen, ruta)
@@ -271,14 +296,18 @@ export const editarPrograma = async (req, res) => {
         } else {
             ProgramaFound.imagenes = []
             ProgramaFound.enlace = enlace
-            if (req.files && req.files.portadaEnlace) {
-                const { portadaEnlace } = req.files
-                const ruta = `programas/${ProgramaFound.titulo}/${portadaEnlace.name}`
-                await upload(portadaEnlace, ruta)
-                ProgramaFound.portadaEnlace = ruta
+            if (req.files && req.files.imagenesEnlace) {
+                ProgramaFound.imagenesEnlace = []
+                const { imagenesEnlace } = req.files
+                for(const imagen of  Array.isArray(imagenesEnlace) ? imagenesEnlace : [imagenesEnlace]){
+                    const ruta = `programas/${ProgramaFound.titulo}/${imagen.name}`
+                    await upload(imagen, ruta)
+                    ProgramaFound.imagenesEnlace.push(ruta)
+                }
             }
         }
         await ProgramaFound.save()
+        return res.status(200).send('OK')
     } catch (error) {
         console.log(error);
         return res.status(500).send('Ocurrio un error')
@@ -331,7 +360,7 @@ export const borrarPrograma = async (req, res) => {
         return res.status(200).json('Eliminado exitosamente')
     } catch (error) {
         console.log(error);
-        return res.status(500).send('Ocurrio un error')    
+        return res.status(500).send('Ocurrio un error')
     }
 }
 
@@ -339,4 +368,41 @@ export const borrarContenido = async (req, res) => {
     const { idprograma, id } = req.params
     const programaFound = await Programa.findById(idprograma)
     if (!programaFound) return res.status(404).send('No encontrado');
+}
+
+
+//Cliente
+export const programasCliente = async (req, res) => {
+    const { limit } = req.query
+    try {
+        const programasFound = await Programa.find().limit(limit ? limit : null)
+        if (programasFound.length == 0) return res.status(400).send('Sin programas');
+        const programasFoundJSON = JSON.parse(JSON.stringify(programasFound))
+        for (const programa of programasFoundJSON) {
+            if (programa.categoria_id) {
+                const categoriaFound = await Categoria.findById(programa.categoria_id)
+                programa.categoria = categoriaFound.nombre
+            }
+            if (programa.imagenes) {
+                const imagenes = programa.imagenes
+                programa.imagenes = []
+                for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
+                    const ruta = await getFileURL(imagen)
+                    programa.imagenes.push(ruta)
+                }
+            }
+            if (programa.imagenesEnlace) {
+                const imagenes = programa.imagenesEnlace
+                programa.imagenes = []
+                for(const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]){
+                    const ruta = await getFileURL(imagen)
+                    programa.imagenes.push(ruta)
+                }
+            }
+        }
+        return res.status(200).send(programasFoundJSON)
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send('Ocurrio un error')
+    }
 }
