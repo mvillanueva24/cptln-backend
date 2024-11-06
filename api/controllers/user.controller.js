@@ -83,8 +83,9 @@ export const logout = (req, res) => {
 
 export const verifyToken = async (req, res) => {
     const { token } = req.cookies;
+    console.log(req.cookies);
     if (!token) return res.send(false);
-
+    
     jwt.verify(token, TOKEN_SECRET, async (error, user) => {
 
         if (error) return res.sendStatus(400)
