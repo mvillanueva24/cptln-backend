@@ -10,7 +10,7 @@ const router = Router()
 
 // Client
 router.get('/client/radio', obtenerDatosRadio)
-router.get('/client/radio', todasLasSeccionesDeRadio)
+router.get('/client/radio/secciones', todasLasSeccionesDeRadio)
 router.get('/client/radio/seccion/:idseccion', obtenerSeccionCliente)
 
 
