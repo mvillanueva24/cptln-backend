@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { categorias, categoriasPagination, buscarCategoriaPorNombre, crearCategoria, buscarCategoria, editarCategoria, eliminarCategoria } from '../controllers/categoria.controller.js'
-
+import { authRequired } from '../middleware/validateToken.js'
 const router = Router()
 
 // Cliente
@@ -10,7 +10,7 @@ router.post('/categorias/nombre', buscarCategoriaPorNombre)
 
 
 // Administracion
-router.get('/admin/categorias', categorias)
+router.get('/admin/categorias', authRequired, categorias)
 router.get('/admin/categorias/pagination', categoriasPagination)
 router.get('/admin/categorias/:id', buscarCategoria)
 router.post('/admin/categorias', crearCategoria)

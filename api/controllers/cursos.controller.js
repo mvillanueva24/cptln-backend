@@ -74,7 +74,7 @@ export const editarCurso = async (req, res) => {
 
 export const cursosCapitulosPagination = async (req, res) => {
     try {
-        const { idcurso } = req.params        
+        const { idcurso } = req.params
         const page = parseInt(req.query.page) || 1
         const limit = parseInt(req.query.limit) || 2
         const cursoFound = await Curso.findById(idcurso)
@@ -114,7 +114,7 @@ export const buscarCursos = async (req, res) => {
 
 }
 
-export const eliminarCurso = async(req, res) => {
+export const eliminarCurso = async (req, res) => {
     const { id } = req.query
     try {
         const DevocionalFound = await Curso.findById(id)
@@ -141,8 +141,8 @@ export const crearCapituloCurso = async (req, res) => {
         })
         if (req.files && req.files.pdf) {
             const { pdf } = req.files
-            const ruta = `cursos/${cursoFound._id}/${newCapitulo._id}/${pdf.name}`
-            await upload(pdf, ruta,'application/pdf')
+            const ruta = `cursos/${cursoFound._id}/${newCapitulo._id}/pdf/${pdf.name}`
+            await upload(pdf, ruta, 'application/pdf')
             newCapitulo.pdf = ruta
         }
         cursoFound.capitulos.push(newCapitulo)
@@ -171,19 +171,17 @@ export const buscarCapituloEspecifico = async (req, res) => {
         const { idcurso, idcapitulo } = req.params
         const cursoFound = await Curso.findById(idcurso)
         if (!cursoFound) return res.status(404).send('No encontrado');
-        console.log(idcapitulo, idcurso);
-    
-        const contenidoFound = cursoFound.capitulos.find((capitulo) => capitulo._id.toString() === idcapitulo)
-        if (!contenidoFound) return res.status(404).send('Capitulo no encontrado');
-        if (contenidoFound.pdf) {
+        const capituloFound = cursoFound.capitulos.find((capitulo) => capitulo._id.toString() === idcapitulo)
+        if (!capituloFound) return res.status(404).send('Capitulo no encontrado');
+        if (capituloFound.pdf) {
             const tmp = contenidoFound.pdf
-            contenidoFound.pdf = await getFileURL(tmp)
+            capituloFound.pdf = await getFileURL(tmp)
         }
-        return res.status(200).send(contenidoFound)
+        return res.status(200).send(capituloFound)
     } catch (error) {
         console.log(error);
         return res.status(500).send('Ocurrio un error')
-    } 
+    }
 }
 
 export const editarCapituloCurso = async (req, res) => {
@@ -192,14 +190,14 @@ export const editarCapituloCurso = async (req, res) => {
         const { titulo, youtube } = req.body
         const cursoFound = await Curso.findById(idcurso)
         if (!cursoFound) return res.status(404).send('No encontrado');
-        const contenidoFound = cursoFound.capitulos.find((capitulo) => capitulo._id.toString() === idcapitulo)
-        if (!contenidoFound) return res.status(404).send('Capitulo no encontrado');
-        contenidoFound.titulo = titulo && titulo
-        contenidoFound.idYoutube = youtube && youtube
+        const capituloFound = cursoFound.capitulos.find((capitulo) => capitulo._id.toString() === idcapitulo)
+        if (!capituloFound) return res.status(404).send('Capitulo no encontrado');
+        if (titulo) capituloFound.titulo = titulo;
+        if (youtube) capituloFound.idYoutube = youtube;        
         if (req.files && req.files.pdf) {
             const { pdf } = req.files
-            const ruta = `cursos/${cursoFound._id}/${contenidoFound._id}/${pdf.name}`
-            contenidoFound.pdf = await upload(pdf, ruta, 'application/pdf')
+            const ruta = `cursos/${cursoFound._id}/${capituloFound._id}/pdf/${pdf.name}`
+            await upload(pdf, ruta, 'application/pdf')
         }
         await cursoFound.save()
         return res.status(200).send('Modificado correctamente')
@@ -224,16 +222,16 @@ export const ordenarCapitulos = async (req, res) => {
     } catch (error) {
         console.log(error);
         return res.status(500).send('Ocurrio un error')
-    }  
+    }
 }
 
-export const eliminarCapitulo = async(req, res) => {
+export const eliminarCapitulo = async (req, res) => {
     try {
         const { idcurso, idcapitulo } = req.params
         const cursoFound = await Curso.findById(idcurso)
         if (!cursoFound) return res.status(404).send('No encontrado');
-        const indexCapitulo = cursoFound.capitulos.findIndex((capitulo)=> capitulo._id.toString() === idcapitulo)
-        if(!indexCapitulo) return res.status.send('Capitulo no encontrado')
+        const indexCapitulo = cursoFound.capitulos.findIndex((capitulo) => capitulo._id.toString() === idcapitulo)
+        if (!indexCapitulo) return res.status.send('Capitulo no encontrado')
         cursoFound.capitulos.splice(indexCapitulo, 1);
         await cursoFound.save()
         return res.status(200).send('Eliminado correctamente')

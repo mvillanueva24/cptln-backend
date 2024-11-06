@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, GetObjectCommand} from '@aws-sdk/client-s3'
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand} from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { config } from 'dotenv'
 import fs from 'fs'
@@ -49,5 +49,21 @@ export const getFileURL = async (ruta) =>{
     return await getSignedUrl(s3, command, { expiresIn: 3600})
 } 
 
+export const deleteFile = async (ruta) => {
+    const deleteParams = {
+        Bucket: AWS_BUCKET_NAME,
+        Key: ruta
+    }
+
+    const command = new DeleteObjectCommand(deleteParams)
+    try {
+        const result = await s3.send(command)
+        console.log(`Archivo ${ruta} eliminado exitosamente del bucket.`)
+        return result
+    } catch (error) {
+        console.error(`Error al eliminar el archivo: ${error}`)
+        throw error
+    }
+}
 
 export default s3

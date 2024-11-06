@@ -1,5 +1,5 @@
 import Categoria from "../models/categoria.model.js"
-import { getFileURL, upload } from '../../api/aws/s3.js'
+import { getFileURL, upload, deleteFile } from '../../api/aws/s3.js'
 import { Programa } from '../models/programa.model.js'
 
 export const categorias = async (req, res) => {
@@ -84,6 +84,9 @@ export const editarCategoria = async (req, res) => {
         if (indicePortada) categoriaFound.indicePortada = indicePortada;
         if (req.files && req.files.imagenes) {
             const { imagenes } = req.files
+            for (const imagen of categoriaFound.imagenes) {
+                await deleteFile(imagen)
+            }
             categoriaFound.imagenes = []
             let count = 0
             for (const imagen of imagenes) {
@@ -133,6 +136,10 @@ export const eliminarCategoria = async (req, res) => {
     const { id } = req.body
     try {
         const categoriaFound = await Categoria.findById(id)
+        const imagenes = categoriaFound.imagenes
+        for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]){
+            await deleteFile(imagen)
+        }
         if (!categoriaFound) return res.status(404).send('No encontrado');
         const programas = await Programa.find({ categoria_id: id})
         if (programas.length > 0){
