@@ -56,7 +56,7 @@ export const login = async (req, res) => {
         const token = await createAccessToken({ id: userFound._id });
 
         // Establece la cookie manualmente usando setHeader
-        res.setHeader('Set-Cookie', `token=${token}; Path=/; Max-Age=3600; SameSite=Lax; Secure=${process.env.NODE_ENV === 'production'}`);
+        res.setHeader('Set-Cookie', `token=${token}; Path=/; Max-Age=3600; SameSite=None; Secure=${process.env.NODE_ENV === 'production'}`);
 
         // Respuesta para el frontend
         return res.status(200).json({
