@@ -3,11 +3,16 @@ import { ebooks, ebooksPagination, guardarPDF, buscarEbook, editarEbook, elimina
 
 const router = Router()
 
+
+// Cliente
 router.get('/ebooks', ebooks)
-router.get('/ebooks/pagination', ebooksPagination)
-router.get('/ebooks/:id', buscarEbook)
-router.post('/ebooks', guardarPDF)
-router.post('/ebooks/delete', eliminarEbook)
-router.post('/ebooks/:id', editarEbook)
+
+// Administracion
+router.get('/admin/ebooks', ebooks)
+router.get('/admin/ebooks/pagination', ebooksPagination)
+router.get('/admin/ebooks/:id', buscarEbook)
+router.post('/admin/ebooks', guardarPDF)
+router.post('/admin/ebooks/delete', eliminarEbook)
+router.post('/admin/ebooks/:id', editarEbook)
 
 export default router

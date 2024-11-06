@@ -3,12 +3,15 @@ import { eventos, eventosPagination, buscarEvento, crearEvento, editarEvento, el
 
 const router = Router()
 
+// Cliente
 router.get('/eventos',eventos)
-router.get('/eventos/pagination',eventosPagination)
-router.get('/eventos/:id',buscarEvento)
 
-router.post('/eventos',crearEvento)
-router.post('/eventos/delete',eliminarEvento)
-router.post('/eventos/:id',editarEvento)
+// Administracion
+router.get('/admin/eventos',eventos)
+router.get('/admin/eventos/pagination',eventosPagination)
+router.get('/admin/eventos/:id',buscarEvento)
+router.post('/admin/eventos',crearEvento)
+router.post('/admin/eventos/delete',eliminarEvento)
+router.post('/admin/eventos/:id',editarEvento)
 
 export default router

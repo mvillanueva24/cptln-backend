@@ -47,6 +47,7 @@ export const crearCurso = async (req, res) => {
             descripcion: descripcion
         })
         await newCurso.save()
+        return res.status(200).send('OK')
     } catch (error) {
         console.log(error)
         return res.status(500).send('Ocurrio un error')
@@ -111,6 +112,19 @@ export const buscarCursos = async (req, res) => {
         return res.status(500).send('Ocurrio un error')
     }
 
+}
+
+export const eliminarCurso = async(req, res) => {
+    const { id } = req.query
+    try {
+        const DevocionalFound = await Curso.findById(id)
+        if (!DevocionalFound) return res.status(404).send('Curso no encontrado')
+        await Curso.findByIdAndDelete(id)
+        return res.status(200).send('Eliminado exitosamente')
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send('Ocurrio un error')
+    }
 }
 
 
@@ -211,4 +225,20 @@ export const ordenarCapitulos = async (req, res) => {
         console.log(error);
         return res.status(500).send('Ocurrio un error')
     }  
+}
+
+export const eliminarCapitulo = async(req, res) => {
+    try {
+        const { idcurso, idcapitulo } = req.params
+        const cursoFound = await Curso.findById(idcurso)
+        if (!cursoFound) return res.status(404).send('No encontrado');
+        const indexCapitulo = cursoFound.capitulos.findIndex((capitulo)=> capitulo._id.toString() === idcapitulo)
+        if(!indexCapitulo) return res.status.send('Capitulo no encontrado')
+        cursoFound.capitulos.splice(indexCapitulo, 1);
+        await cursoFound.save()
+        return res.status(200).send('Eliminado correctamente')
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send('Ocurrio un error')
+    }
 }

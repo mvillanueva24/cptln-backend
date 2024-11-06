@@ -87,11 +87,20 @@ export const programasPorCategoria = async (req, res) => {
     try {
         const categoriaFound = await Categoria.findOne({ nombre: { $regex: new RegExp(`^${customNombre.toLowerCase()}$`, "i") } })
         const programasFound = await Programa.find({ categoria_id: categoriaFound._id })
-        if (programasFound.length == 0) return res.status(400).send('Sin resultados')
+        if (programasFound.length == 0) return res.status(400).send('Sin resultados');
+
         for (const programa of programasFound) {
             if (programa.imagenes) {
                 const imagenes = programa.imagenes
                 programa.imagenes = []
+                for (const imagen of imagenes) {
+                    const ruta = await getFileURL(imagen)
+                    programa.imagenes.push(ruta)
+                }
+            }
+            if(programa.imagenesEnlace) {
+                const imagenes = programa.imagenesEnlace
+                programa.imagenesEnlace = []
                 for (const imagen of imagenes) {
                     const ruta = await getFileURL(imagen)
                     programa.imagenes.push(ruta)
@@ -365,7 +374,7 @@ export const borrarPrograma = async (req, res) => {
 }
 
 export const borrarContenido = async (req, res) => {
-    const { idprograma, id } = req.params
+    const { idprograma, idcontenido } = req.params
     const programaFound = await Programa.findById(idprograma)
     if (!programaFound) return res.status(404).send('No encontrado');
 }

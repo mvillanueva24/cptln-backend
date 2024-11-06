@@ -29,16 +29,16 @@ const crearRadio = async (req, res) => {
             descripcion: descripcion,
         })
         if (req.files) {
-            if (req.files && req.files.portada) {
-                const { portada } = req.files
-                const ruta = `radio/${newRadio._id}/${portada.name}`
-                await upload(portada, ruta)
-                newRadio.portada = ruta
+            if (req.files && req.files.video) {
+                const { video } = req.files
+                const ruta = `radio/${newRadio._id}/${video.name}`
+                await upload(video, ruta)
+                newRadio.videoHome = ruta
             }
             if (req.files && req.files.imagenesExtra) {
                 const { imagenes } = req.files
                 for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
-                    const ruta = `radio/${newRadio._id}/${portada.name}`
+                    const ruta = `radio/${newRadio._id}/${imagen.name}`
                     await upload(imagen, ruta)
                     newRadio.imagenes.push(ruta)
                 }
@@ -56,6 +56,18 @@ export const obtenerDatosRadio = async (req, res) => {
     try {
         const radio = await Radio.findOne()
         if (!radio) return res.status(404).send('No encontrado');
+        if (radio.videoHome) {
+            const tmp = radio.videoHome
+            radio.videoHome = await getFileURL(tmp)
+        }
+        if (radio.imagenes) {
+            const imagenes = radio.imagenes
+            radio.imagenes = []
+            for ( const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
+                const ruta = await getFileURL(imagen)
+                radio.imagenes.push(ruta)
+            } 
+        }
         return res.status(200).send(radio)
     } catch (error) {
         console.log(error);
@@ -81,6 +93,8 @@ export const actualizarDatosRadio = async (req, res) => {
         if (descripcion != undefined) {
             radio.descripcion = descripcion
         }
+        console.log(req.files);
+        
         if (req.files) {
             if (req.files && req.files.imagenes) {
                 try {
@@ -98,9 +112,15 @@ export const actualizarDatosRadio = async (req, res) => {
             }
             if (req.files && req.files.video) {
                 try {
-                    
+                    if (req.files && req.files.video) {
+                        const { video } = req.files
+                        const ruta = `radio/${radio._id}/${video.name}`
+                        await upload(video, ruta)
+                        radio.videoHome = ruta
+                    }
                 } catch (error) {
-                    
+                    console.log(error);
+                    return res.status(500).send('Error en guardar el video')
                 }
             }
         }

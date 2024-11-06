@@ -8,25 +8,28 @@ import {
 
 const router = Router()
 
-// Radio
+// Client
+router.get('/client/radio', obtenerDatosRadio)
+router.get('/client/radio', todasLasSeccionesDeRadio)
+router.get('/client/radio/seccion/:idseccion', obtenerSeccionCliente)
+
+
+// Administrador
+
+// Radio //
 router.get('/admin/radio', obtenerDatosRadio)
 router.post('/admin/radio', actualizarDatosRadio)
 
-// Secciones
+// Secciones //
 router.get('/admin/radio/secciones', obtenerSecciones)
-router.post('/admin/radio/secciones', agregarSeccion)
 router.get('/admin/radio/secciones/:idseccion', obtenerSeccion)
+router.post('/admin/radio/secciones', agregarSeccion)
 router.post('/admin/radio/secciones/:idseccion', modificarSeccion)
 
-// Contenido
+// Contenido //
 router.get('/admin/radio/secciones/:idseccion/contenido', obtenerContenidos)
-router.post('/admin/radio/secciones/:idseccion/contenido', agregarContenido)
 router.get('/admin/radio/secciones/:idseccion/contenido/:idcontenido', obtenerContenido)
+router.post('/admin/radio/secciones/:idseccion/contenido', agregarContenido)
 router.post('/admin/radio/secciones/:idseccion/contenido/:idcontenido', modificarContenido)
-
-
-//Cliente
-router.get('/client/radio', todasLasSeccionesDeRadio)
-router.get('/client/radio/seccion/:idseccion', obtenerSeccionCliente)
 
 export default router

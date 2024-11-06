@@ -3,12 +3,18 @@ import { categorias, categoriasPagination, buscarCategoriaPorNombre, crearCatego
 
 const router = Router()
 
+// Cliente
 router.get('/categorias', categorias)
-router.get('/categorias/pagination', categoriasPagination)
 router.get('/categorias/:id', buscarCategoria)
-router.post('/categorias', crearCategoria)
 router.post('/categorias/nombre', buscarCategoriaPorNombre)
-router.post('/categorias/delete', eliminarCategoria)
-router.post('/categorias/:id', editarCategoria)
+
+
+// Administracion
+router.get('/admin/categorias', categorias)
+router.get('/admin/categorias/pagination', categoriasPagination)
+router.get('/admin/categorias/:id', buscarCategoria)
+router.post('/admin/categorias', crearCategoria)
+router.post('/admin/categorias/delete', eliminarCategoria)
+router.post('/admin/categorias/:id', editarCategoria)
 
 export default router

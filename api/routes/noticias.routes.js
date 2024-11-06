@@ -3,12 +3,20 @@ import { noticias, noticiasPagination, crearNoticias, buscarNoticias, editarNoti
 
 const router = Router()
 
+// Cliente
 router.get('/noticias',noticias)
 router.get('/noticias/pagination',noticiasPagination)
 router.get('/noticias/programa',noticiasPorPrograma)
 router.get('/noticias/:id',buscarNoticias)
-router.post('/noticias',crearNoticias)
-router.post('/noticias/delete', eliminarNoticias)
-router.post('/noticias/:id',editarNoticias)
+
+
+// Administracion
+router.get('/admin/noticias',noticias)
+router.get('/admin/noticias/pagination',noticiasPagination)
+router.get('/admin/noticias/programa',noticiasPorPrograma)
+router.get('/admin/noticias/:id',buscarNoticias)
+router.post('/admin/noticias',crearNoticias)
+router.post('/admin/noticias/delete', eliminarNoticias)
+router.post('/admin/noticias/:id',editarNoticias)
 
 export default router

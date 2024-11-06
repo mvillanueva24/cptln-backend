@@ -102,15 +102,15 @@ export const editarCategoria = async (req, res) => {
 }
 
 export const buscarCategoria = async (req, res) => {
-    const { id } = req.params
+    const { id } = req.params    
     try {
-        const categoriaFound = await Categoria.findById(id)
+        const categoriaFound = await Categoria.findById(id)        
         if (!categoriaFound) return res.status(404).send('Categoria no encontrada')
         if (categoriaFound.imagenes) {
             const imagenes = categoriaFound.imagenes
             categoriaFound.imagenes = []
             for (const imagen of imagenes) {
-                const ruta = await getFileURL(imagen.ruta)
+                const ruta = await getFileURL(imagen)
                 categoriaFound.imagenes.push(ruta)
             }
         }

@@ -7,10 +7,10 @@ import {TOKEN_SECRET} from '../libs/configToken.js'
 //* Metodo de registro de usuarios
 export const register = async (req, res) => {
     console.log(req.body);
-    const { nombres, apellidos, correo, contraseña } = req.body
+    const { nombres, apellidos, correo, password } = req.body
     try {
         //Guardar usuario
-        const passwordHash = await bcrypt.hash(contraseña, 10)
+        const passwordHash = await bcrypt.hash(password, 10)
         const newUser = new User({                
             nombres,                                          
             apellidos,                                                       
@@ -30,9 +30,8 @@ export const register = async (req, res) => {
         })
 
     } catch (error) {
-        res.status(500).json({
-            'Ocurrio el siguiente error - Backend: ': error.message
-        })
+        console.log(error);
+        return res.status(500).send('Ocurrio un error')
     }
 }
 

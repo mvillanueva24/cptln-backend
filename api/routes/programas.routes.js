@@ -14,28 +14,37 @@ import {
     editarContenidoDePrograma, 
     borrarPrograma, 
     cambiarPosicionDelContenido,
-    programasCliente
+    programasCliente,
+    borrarContenido
 } from '../controllers/programa.controller.js'
 
 const router = Router()
 
+// Cliente
 router.get('/programa',programas)
-router.get('/programa/pagination',programasPagination)
 router.get('/programa/:id',buscarPrograma)
-router.get('/programa/contenido/pagination/:id',buscarContenidoProgramaPagination)
-router.get('/programa/contenido/:idprograma/:id',buscarContenidoEspecifoPrograma)
-router.post('/programa/contenido/:id',agregarContenidoPrograma)
-router.post('/programa',crearPrograma)
+router.get('/client/programa',programasCliente)
 router.post('/programa/categoria', programasPorCategoria)
-router.post('/programa/delete', borrarPrograma)
-router.post('/programa/editar/:id', editarPrograma)
-router.post('/programa/contenido/ordenar/:id', cambiarPosicionDelContenido)
-router.post('/programa/contenido/:idprograma/:id', editarContenidoDePrograma)
 router.post('/programa/nombre', buscarProgramaPorNombre)
 router.post('/programa/nombre/contenido', buscarProgramaConContenido)
 
-//Cliente
-router.get('/client/programa',programasCliente)
 
+// Administracion
+
+// Programa //
+router.get('/admin/programa',programas)
+router.get('/admin/programa/pagination',programasPagination)
+router.get('/admin/programa/:id',buscarPrograma)
+router.post('/admin/programa',crearPrograma)
+router.post('/admin/programa/editar/:id', editarPrograma)
+router.post('/admin/programa/delete', borrarPrograma)
+
+// Contenido //
+router.get('/admin/programa/contenido/pagination/:id',buscarContenidoProgramaPagination)
+router.get('/admin/programa/contenido/:idprograma/:id',buscarContenidoEspecifoPrograma)
+router.post('/admin/programa/contenido/ordenar/:id', cambiarPosicionDelContenido)
+router.post('/admin/programa/contenido/delete', borrarContenido)
+router.post('/admin/programa/contenido/:id',agregarContenidoPrograma)
+router.post('/admin/programa/contenido/:idprograma/:id', editarContenidoDePrograma)
 
 export default router

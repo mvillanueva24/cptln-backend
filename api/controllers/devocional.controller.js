@@ -146,7 +146,7 @@ export const editarDevocional = async (req, res) => {
     }
 }
 
-export const cambiarEstadoDevocional = async (req, res) => {
+export const eliminarDevocional = async (req, res) => {
     const { id } = req.query
     try {
         const DevocionalFound = await Devocional.findById(id)
