@@ -57,10 +57,9 @@ export const crearNoticias = async (req, res) => {
                 let count = 0
                 for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
                     const ruta = `noticias/${newNoticia._id}/imagenes/${count}/${imagen.name}`
-                    await upload(imagenes[index], ruta)
+                    await upload(imagen, ruta)
                     newNoticia.imagenes.push(ruta)
                 }
-                newNoticia.imagenes = filenameImages
             }
             if (req.files.portada) {
                 const { portada } = req.files
