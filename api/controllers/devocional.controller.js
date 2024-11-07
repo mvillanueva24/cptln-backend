@@ -150,7 +150,9 @@ export const eliminarDevocional = async (req, res) => {
     const { id } = req.query
     try {
         const DevocionalFound = await Devocional.findById(id)
-        if (!DevocionalFound) return res.status(404).send('Devocional no encontrado')
+        if (!DevocionalFound) return res.status(404).send('Devocional no encontrado');
+        await deleteFile(DevocionalFound.imagenURL)
+        await deleteFile(DevocionalFound.audioURL)
         await Devocional.findByIdAndDelete(id)
         return res.status(200).send('Eliminado exitosamente')
     } catch (error) {

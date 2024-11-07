@@ -36,8 +36,8 @@ router.get('/admin/programa',programas)
 router.get('/admin/programa/pagination',programasPagination)
 router.get('/admin/programa/:id',buscarPrograma)
 router.post('/admin/programa',crearPrograma)
-router.post('/admin/programa/editar/:id', editarPrograma)
 router.post('/admin/programa/delete', borrarPrograma)
+router.post('/admin/programa/editar/:id', editarPrograma)
 
 // Contenido //
 router.get('/admin/programa/contenido/pagination/:id',buscarContenidoProgramaPagination)

@@ -1,5 +1,5 @@
 import Noticia from '../models/noticia.model.js'
-import { upload, getFileURL } from '../aws/s3.js'
+import { upload, getFileURL, deleteFile } from '../aws/s3.js'
 import mongoose from 'mongoose'
 import { Programa } from '../models/programa.model.js'
 
@@ -51,22 +51,20 @@ export const crearNoticias = async (req, res) => {
             fecha: fecha,
             programa_id: programa_id ? programa_id : null
         })
-        let filenameImages = []
         if (req.files) {
             if (req.files.imagenes) {
                 const { imagenes } = req.files
-                for (let index = 0; imagenes.length > index; index++) {
-                    const date = new Date(fecha)
-                    const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate() + 1}/${newNoticia._id}/${newNoticia._id}_noticia_imagenes_${index}_img.${imagenes[index].name.split('.').pop()}`
+                let count = 0
+                for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
+                    const ruta = `noticias/${newNoticia._id}/imagenes/${count}/${imagen.name}`
                     await upload(imagenes[index], ruta)
-                    filenameImages.push(ruta)
+                    newNoticia.imagenes.push(ruta)
                 }
                 newNoticia.imagenes = filenameImages
             }
             if (req.files.portada) {
                 const { portada } = req.files
-                const date = new Date(fecha);
-                const ruta = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate() + 1}/${newNoticia._id}/${newNoticia._id}_noticia_portada.${portada.name.split('.').pop()}`
+                const ruta = `noticias/${newNoticia._id}/portada/${portada.name}`
                 await upload(portada, ruta)
                 newNoticia.portada = ruta
             }
@@ -115,16 +113,23 @@ export const editarNoticias = async (req, res) => {
         const NoticiaFound = await Noticia.findById(id)
         if (!NoticiaFound) return res.status(404).send('API: Noticia no encontrada')
         if (req.files) {
-            const { imagenes, portada } = req.files
-            const date = new Date(NoticiaFound.fecha)
-            if (req.files.imagenes > 0) {
-                for (let index = 0; index < indexImages.length; index++) {
-                    const tmp = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate() + 1}/${NoticiaFound._id}/${NoticiaFound._id}_noticia_imagenes_${indexImages[index]}_img.${imagenes[index].name.split('.').pop()}`
-                    await upload(imagenes[index], tmp)
+            if (req.files && req.files.imagenes) {
+                const { imagenes } = req.files
+                const imagenesTmp = NoticiaFound.imagenes
+                for (const imagen of Array.isArray(imagenesTmp) ? imagenesTmp : [imagenesTmp]) {
+                    await deleteFile(imagen)
+                }
+                let count = 0
+                for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
+                    const ruta = `noticias/${NoticiaFound._id}/imagenes/${count}/${imagen.name}`
+                    await upload(imagen, ruta)
+                    count++
                 }
             }
-            if (req.files.portada) {
-                const tmp = `noticias/${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate() + 1}/${NoticiaFound._id}/${NoticiaFound._id}_noticia_portada.${portada.name.split('.').pop()}`
+            if (req.files && req.files.portada) {
+                const { portada } = req.files
+                await deleteFile(NoticiaFound.portada)
+                const tmp = `noticias/${NoticiaFound._id}/portada/${portada.name}`
                 await upload(portada, tmp)
             }
         }
@@ -177,9 +182,15 @@ export const noticiasPorPrograma = async (req, res) => {
 
 export const eliminarNoticias = async (req, res) => {
     const { id } = req.query
+    
     try {
         const noticiaFound = await Noticia.findById(id)
         if (!noticiaFound) return res.status(404).send('No encontrado');
+        const imagenesTmp = noticiaFound.imagenes
+        for (const imagen of Array.isArray(imagenesTmp) ? imagenesTmp : [imagenesTmp]) {
+            await deleteFile(imagen)
+        }
+        await deleteFile(noticiaFound.portada)
         await Noticia.findByIdAndDelete(id)
         return res.status(200).send('Eliminado correctamente')
     } catch (error) {

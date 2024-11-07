@@ -1,5 +1,5 @@
 import Ebook from '../models/ebooks.model.js'
-import { getFileURL, upload } from "../aws/s3.js"
+import { deleteFile, getFileURL, upload } from "../aws/s3.js"
 
 export const ebooks = async (req, res) => {
     const { limit } = req.query
@@ -54,11 +54,11 @@ export const guardarPDF = async (req, res) => {
         if (req.files) {
             const { pdf, portada } = req.files
             if (req.files && req.files.pdf) {
-                newEbook.pdf = `ebooks/${newEbook._id}/${pdf.name}`
+                newEbook.pdf = `ebooks/${newEbook._id}/pdf/${pdf.name}`
                 await upload(pdf, newEbook.pdf, 'application/pdf')
             }
             if (req.files && req.files.portada) {
-                newEbook.portada = `ebooks/${newEbook._id}/${portada.name}`
+                newEbook.portada = `ebooks/${newEbook._id}/portada/${portada.name}`
                 await upload(portada, newEbook.portada)
             }
         }
@@ -100,11 +100,13 @@ export const editarEbook = async (req, res) => {
         if (descripcion) ebookFound.descripcion = descripcion;
         if (req.files) {
             if (req.files && req.files.pdf) {
+                await deleteFile(ebookFound.pdf)
                 const { pdf } = req.files
                 ebookFound.pdf = `ebooks/${ebookFound._id}/${pdf.name}`
                 await upload(pdf, ebookFound.pdf)
             }
             if (req.files && req.files.portada) {
+                await deleteFile(ebookFound.portada)
                 const { portada } = req.files
                 ebookFound.portada = `ebooks/${ebookFound._id}/${portada.name}`
                 await upload(portada, ebookFound.portada)
@@ -123,6 +125,8 @@ export const eliminarEbook = async (req, res) => {
     try {
         const ebookFound = await Ebook.findById(id)
         if (!ebookFound) return res.status(404).send('No encontrado');
+        await deleteFile(ebookFound.pdf)
+        await deleteFile(ebookFound.portada)
         await Ebook.findByIdAndDelete(id)
         return res.status(200).send('Eliminado correctamente')
     } catch (error) {

@@ -100,11 +100,12 @@ export const solicitudEbooks = async(req, res) => {
 }
 
 export const solicitudCursos = async(req, res) => {
-    const { nombres, apellidos, correo} = req.body
+    const { nombres, apellidos, correo, motivo} = req.body    
     await new Seguidor({
         nombres: nombres,
         apellidos: apellidos,
         correo: correo,
+        motivo: motivo,
         objetivo: 'cursos'
     }).save()
     return res.status(200).send('Enviado correctamente')

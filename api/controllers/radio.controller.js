@@ -1,5 +1,5 @@
 import { Radio, SeccionRadio, ContenidoSeccionRadio } from "../models/radio.model.js";
-import { upload, getFileURL } from "../aws/s3.js";
+import { upload, getFileURL, deleteFile } from "../aws/s3.js";
 import mongoose from "mongoose";
 
 // Formatos de video
@@ -31,14 +31,14 @@ const crearRadio = async (req, res) => {
         if (req.files) {
             if (req.files && req.files.video) {
                 const { video } = req.files
-                const ruta = `radio/${newRadio._id}/${video.name}`
+                const ruta = `radio/${newRadio._id}/config/${video.name}`
                 await upload(video, ruta)
                 newRadio.videoHome = ruta
             }
             if (req.files && req.files.imagenesExtra) {
                 const { imagenes } = req.files
                 for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
-                    const ruta = `radio/${newRadio._id}/${imagen.name}`
+                    const ruta = `radio/${newRadio._id}/config/${imagen.name}`
                     await upload(imagen, ruta)
                     newRadio.imagenes.push(ruta)
                 }
@@ -63,10 +63,10 @@ export const obtenerDatosRadio = async (req, res) => {
         if (radio.imagenes) {
             const imagenes = radio.imagenes
             radio.imagenes = []
-            for ( const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
+            for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
                 const ruta = await getFileURL(imagen)
                 radio.imagenes.push(ruta)
-            } 
+            }
         }
         return res.status(200).send(radio)
     } catch (error) {
@@ -93,15 +93,17 @@ export const actualizarDatosRadio = async (req, res) => {
         if (descripcion != undefined) {
             radio.descripcion = descripcion
         }
-        console.log(req.files);
-        
         if (req.files) {
             if (req.files && req.files.imagenes) {
                 try {
                     const { imagenes } = req.files
+                    const imagenesTMP = radio.imagenes
+                    for (const imagen of Array.isArray(imagenesTMP) ? imagenesTMP : [imagenesTMP]) {
+                        await deleteFile(imagen)
+                    }
                     radio.imagenes = []
                     for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
-                        const ruta = `radio/${radio._id}/${imagen.name}`
+                        const ruta = `radio/${radio._id}/config/${imagen.name}`
                         await upload(imagen, ruta)
                         radio.imagenes.push(ruta)
                     }
@@ -113,8 +115,9 @@ export const actualizarDatosRadio = async (req, res) => {
             if (req.files && req.files.video) {
                 try {
                     if (req.files && req.files.video) {
+                        await deleteFile(radio.videoHome)
                         const { video } = req.files
-                        const ruta = `radio/${radio._id}/${video.name}`
+                        const ruta = `radio/${radio._id}/config/${video.name}`
                         await upload(video, ruta)
                         radio.videoHome = ruta
                     }
@@ -160,6 +163,68 @@ export const obtenerSeccion = async (req, res) => {
     }
 }
 
+export const obtenerSeccionPagination = async (req, res) => {
+    try {
+        const { idseccion } = req.params
+        const radio = await Radio.findOne()
+        const page = parseInt(req.query.page) || 1
+        const limit = parseInt(req.query.limit) || 2
+        const seccionFound = radio.secciones.find((seccion) => seccion._id.toString() === idseccion)
+        // const seccion = JSON.parse(JSON.stringify(seccionFound))
+        const contenidos = seccionFound.contenidos.slice((page - 1) * limit, (page * limit))
+        const totalContenido = seccionFound.contenidos.length
+        if (contenidos.length == 0) return res.status(400).send('Aun no hay capitulos');
+        const contenidosJson = JSON.parse(JSON.stringify(contenidos))
+        for (let index = 0; contenidos.length > index; index++) {
+            contenidosJson[index].archivos = []
+            if (contenidosJson[index].imagenes && contenidosJson[index].imagenes.length > 0) {
+                for (const imagen of contenidosJson[index].imagenes) {
+                    const ruta = await getFileURL(imagen)
+                    contenidosJson[index].archivos.push({
+                        type: 'image',
+                        ruta: ruta,
+                        originalPath: imagen
+                    })
+                }
+            }
+
+            // Procesar audios
+            if (contenidosJson[index].audios && contenidosJson[index].audios.length > 0) {
+                for (const audio of contenidosJson[index].audios) {
+                    const ruta = await getFileURL(audio)
+                    contenidosJson[index].archivos.push({
+                        type: 'audio',
+                        ruta: ruta,
+                        originalPath: audio
+                    })
+                }
+            }
+
+            // Procesar videos
+            if (contenidosJson[index].videos && contenidosJson[index].videos.length > 0) {
+                for (const video of contenidosJson[index].videos) {
+                    const ruta = await getFileURL(video)
+                    contenidosJson[index].archivos.push({
+                        type: 'video',
+                        ruta: ruta,
+                        originalPath: video
+                    })
+                }
+            }
+        }
+        return res.status(200).json({
+            'seccion': seccionFound.nombre,
+            contenidosJson,
+            currentPage: page,
+            totalPages: Math.ceil(totalContenido / limit),
+            totalContenido,
+        })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send('Ocurrio un error')
+    }
+}
+
 export const agregarSeccion = async (req, res) => {
     try {
         const radio = await Radio.findOne()
@@ -183,7 +248,7 @@ export const modificarSeccion = async (req, res) => {
         const { idseccion } = req.params
         try {
             const seccionFound = radio.secciones.find((seccion) => seccion._id.toString() === idseccion)
-            seccionFound.nombre = nombre
+            if (nombre) seccionFound.nombre = nombre;
         } catch (error) {
             return res.status(304).send(error)
         }
@@ -195,6 +260,19 @@ export const modificarSeccion = async (req, res) => {
     }
 }
 
+export const eliminarSeccion = async (req, res) => {
+    try {
+        const radio = await Radio.findOne()
+        const { idseccion } = req.body
+        const indexSeccion = radio.secciones.findIndex((seccion) => seccion._id.toString() === idseccion)
+        radio.secciones.splice(indexSeccion, 1)
+        await radio.save()
+        return res.status(200).send('Eliminado correctamente')
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send('Ocurrio un error')
+    }
+}
 
 // METHOD PARA EL CONTENIDO
 export const obtenerContenidos = async (req, res) => {
@@ -237,6 +315,10 @@ export const agregarContenido = async (req, res) => {
         if (req.files) {
             if (req.files && req.files.media) {
                 const { media } = req.files
+                newContenido.videos = []
+                newContenido.audios = []
+                newContenido.imagenes = []
+                let count = 0
                 for (const file of Array.isArray(media) ? media : [media]) {
                     const formato = file.name.split('.').pop().toLowerCase();
                     const verificarFormato = (
@@ -246,18 +328,19 @@ export const agregarContenido = async (req, res) => {
                     )
                     if (!verificarFormato) return res.status(500).send('Formato no valido');
                     if (videoFormats.includes(`.${formato}`)) {
-                        const ruta = `radio/archivos/videos/${file.name}`
+                        const ruta = `radio/${radio._id}/${seccionFound._id}/videos/${count}/${file.name}`
                         await upload(file, ruta)
                         newContenido.videos.push(ruta)
                     } else if (audioFormats.includes(`.${formato}`)) {
-                        const ruta = `radio/archivos/audios/${file.name}`
+                        const ruta = `radio/${radio._id}/${seccionFound._id}/audios/${count}${file.name}`
                         await upload(file, ruta)
                         newContenido.audios.push(ruta)
                     } else if (imageFormats.includes(`.${formato}`)) {
-                        const ruta = `radio/archivos/imagenes/${file.name}`
+                        const ruta = `radio/${radio._id}/${seccionFound._id}/imagenes/${count}/${file.name}`
                         await upload(file, ruta)
                         newContenido.imagenes.push(ruta)
                     }
+                    count++
                 }
             }
         }
@@ -281,8 +364,20 @@ export const modificarContenido = async (req, res) => {
         if (descripcion) contenidoSeccionFound.descripcion = descripcion
         if (req.files) {
             if (req.files && req.files.media) {
+                const urlsContenido = []
+                urlsContenido.push(contenidoSeccionFound.videos)
+                urlsContenido.push(contenidoSeccionFound.audios)
+                urlsContenido.push(contenidoSeccionFound.imagenes)
+                const listaContenido = urlsContenido.flat()
+                for (const url of Array.isArray(listaContenido) ? listaContenido : [listaContenido]) {
+                    await deleteFile(url)
+                }
                 const { media } = req.files
-                for (const file of media) {
+                contenidoSeccionFound.videos = []
+                contenidoSeccionFound.audios = []
+                contenidoSeccionFound.imagenes = []
+                let count = 0
+                for (const file of Array.isArray(media) ? media : [media]) {
                     const formato = file.name.split('.').pop().toLowerCase();
                     const verificarFormato = (
                         videoFormats.includes(`.${formato}`) ||
@@ -291,18 +386,19 @@ export const modificarContenido = async (req, res) => {
                     )
                     if (!verificarFormato) return res.status(500).send('Formato no valido');
                     if (videoFormats.includes(`.${formato}`)) {
-                        const ruta = `radio/archivos/videos/${file.name}`
+                        const ruta = `radio/${radio._id}/${seccionFound._id}/videos/${count}/${file.name}`
                         await upload(file, ruta)
                         contenidoSeccionFound.videos.push(ruta)
                     } else if (audioFormats.includes(`.${formato}`)) {
-                        const ruta = `radio/archivos/audios/${file.name}`
+                        const ruta = `radio/${radio._id}/${seccionFound._id}/audios/${count}/${file.name}`
                         await upload(file, ruta)
                         contenidoSeccionFound.audios.push(ruta)
                     } else if (imageFormats.includes(`.${formato}`)) {
-                        const ruta = `radio/archivos/imagenes/${file.name}`
+                        const ruta = `radio/${radio._id}/${seccionFound._id}/imagenes/${count}/${file.name}`
                         await upload(file, ruta)
                         contenidoSeccionFound.imagenes.push(ruta)
                     }
+                    count++
                 }
             }
         }
@@ -314,54 +410,25 @@ export const modificarContenido = async (req, res) => {
     }
 }
 
-// Cliente
-// export const todasLasSeccionesDeRadio = async (req, res) => {
-//     try {
-//         const radio = await Radio.findOne()
-//         const secciones = radio.secciones
-//         radio.secciones = []
-//         for (const seccion of secciones) {
-//             seccion.archivos = []
-//             for (const contenido of seccion.contenidos) {
-//                 if (contenido.imagenes) {
-//                     for (const imagen of contenido.imagenes) {
-//                         const ruta = await getFileURL(imagen)
-//                         seccion.archivos.push({ 'type': 'image', 'ruta': ruta })
-//                     }
-//                 }
-//                 if (contenido.audios) {
-//                     for (const audio of contenido.audios) {
-//                         const ruta = await getFileURL(audio)
-//                         seccion.archivos.push({ 'type': 'audio', 'ruta': ruta })
-//                     }
-//                 }
-//                 if (contenido.videos) {
-//                     for (const video of contenido.videos) {
-//                         const ruta = await getFileURL(video)
-//                         seccion.archivos.push({ 'type': 'video', 'ruta': ruta })
-//                     }
-//                 }
-//             }
-//             radio.secciones.push(seccion)
-//         }
-//         return res.status(200).send(radio)
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(500).send('Ocurrio un error')
-//     }
-// }
-
 export const todasLasSeccionesDeRadio = async (req, res) => {
+    const { limit } = req.query
+
     try {
         const radio = await Radio.findOne()
         // Crear una copia profunda para no modificar el original directamente
         const radioResponse = JSON.parse(JSON.stringify(radio))
 
         // Procesar cada sección
+
         for (let i = 0; i < radioResponse.secciones.length; i++) {
             const seccion = radioResponse.secciones[i]
             // Inicializar array de archivos
 
+            const contenidoFecha = seccion.contenidos.sort((a, b) =>
+                new Date(b.createdAt) - new Date(a.createdAt)
+            ).slice(0, limit)
+
+            seccion.contenidos = contenidoFecha
             // Procesar cada contenido
             for (const contenido of seccion.contenidos) {
                 // Procesar imágenes
@@ -417,7 +484,7 @@ export const obtenerSeccionCliente = async (req, res) => {
         const { idseccion } = req.params
         const seccionFound = radioResponse.secciones.find(seccion => seccion._id.toString() === idseccion)
         const contenidos = seccionFound.contenidos
-        
+
         for (const contenido of Array.isArray(contenidos) ? contenidos : [contenidos]) {
             contenido.archivos = []
             if (contenido.imagenes && contenido.imagenes.length > 0) {
@@ -456,6 +523,34 @@ export const obtenerSeccionCliente = async (req, res) => {
             }
         }
         return res.status(200).json(seccionFound)
+    } catch (error) {
+        console.log('Error:', error)
+        return res.status(500).send('Ocurrió un error')
+    }
+}
+
+export const eliminarContenido = async (req, res) => {
+    try {
+        const radio = await Radio.findOne()
+        const { idseccion } = req.params
+        const { idcontenido } = req.body
+
+
+        const seccionFound = radio.secciones.find((seccion) => seccion.id.toString() === idseccion)
+        const contenidoSeccionFound = seccionFound.contenidos.find((contenido) => contenido._id.toString() === idcontenido)
+        if (!contenidoSeccionFound) return res.status(404).send('No encontrado');
+        const contenidoSeccionFoundIndex = seccionFound.contenidos.findIndex((contenido) => contenido._id.toString() === idcontenido)
+        const urlsContenido = []
+        urlsContenido.push(contenidoSeccionFound.videos)
+        urlsContenido.push(contenidoSeccionFound.audios)
+        urlsContenido.push(contenidoSeccionFound.imagenes)
+        const listaContenido = urlsContenido.flat()
+        for (const url of Array.isArray(listaContenido) ? listaContenido : [listaContenido]) {
+            await deleteFile(url)
+        }
+        seccionFound.contenidos.splice(contenidoSeccionFoundIndex, 1)
+        await radio.save()
+        return res.status(200).send('OK')
     } catch (error) {
         console.log('Error:', error)
         return res.status(500).send('Ocurrió un error')

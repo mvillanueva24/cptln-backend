@@ -13,7 +13,11 @@ const contenidoSeccionSchema = new mongoose.Schema({
     audios: {
         type: [String]
     }
-})
+},
+    {
+        timestamps: true
+    }
+)
 
 const seccionSchema = new mongoose.Schema({
     nombre: {
@@ -21,8 +25,12 @@ const seccionSchema = new mongoose.Schema({
     },
     contenidos: {
         type: [contenidoSeccionSchema]
+    },
+},
+    {
+        timestamps: true
     }
-})
+)
 
 
 const radioSchema = new mongoose.Schema({

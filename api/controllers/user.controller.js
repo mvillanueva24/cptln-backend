@@ -81,9 +81,19 @@ export const logout = (req, res) => {
     return res.sendStatus(200)
 }
 
+export const eliminarUsuario = async(req, res) => {
+    try {
+        const { iduser } = req.params
+        await User.findByIdAndDelete(iduser)
+        return res.status(200).send('Eliminado correctamente')
+    } catch (error) {
+        console.log('Error:', error)
+        return res.status(500).send('Ocurrió un error')
+    }
+}
+
 export const verifyToken = async (req, res) => {
     const { token } = req.cookies;
-    console.log(req.cookies);
     if (!token) return res.send(false);
     
     jwt.verify(token, TOKEN_SECRET, async (error, user) => {

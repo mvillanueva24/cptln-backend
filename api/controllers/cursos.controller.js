@@ -1,5 +1,5 @@
 import { Curso, Capitulo } from '../models/curso.model.js'
-import { upload, getFileURL } from '../aws/s3.js'
+import { upload, getFileURL, deleteFile } from '../aws/s3.js'
 
 // Cursos
 export const cursos = async (req, res) => {
@@ -115,11 +115,20 @@ export const buscarCursos = async (req, res) => {
 }
 
 export const eliminarCurso = async (req, res) => {
-    const { id } = req.query
+    const { idcurso } = req.query    
     try {
-        const DevocionalFound = await Curso.findById(id)
-        if (!DevocionalFound) return res.status(404).send('Curso no encontrado')
-        await Curso.findByIdAndDelete(id)
+        const cursoFound = await Curso.findById(idcurso)
+        if (!cursoFound) return res.status(404).send('Curso no encontrado');
+        for (const curso of Array.isArray(cursoFound) ? cursoFound : [cursoFound]){
+            if (curso.pdf){
+                try {
+                    await deleteFile(curso.pdf)
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+        }
+        await Curso.findByIdAndDelete(idcurso)
         return res.status(200).send('Eliminado exitosamente')
     } catch (error) {
         console.log(error)
@@ -174,7 +183,7 @@ export const buscarCapituloEspecifico = async (req, res) => {
         const capituloFound = cursoFound.capitulos.find((capitulo) => capitulo._id.toString() === idcapitulo)
         if (!capituloFound) return res.status(404).send('Capitulo no encontrado');
         if (capituloFound.pdf) {
-            const tmp = contenidoFound.pdf
+            const tmp = capituloFound.pdf
             capituloFound.pdf = await getFileURL(tmp)
         }
         return res.status(200).send(capituloFound)
@@ -195,6 +204,7 @@ export const editarCapituloCurso = async (req, res) => {
         if (titulo) capituloFound.titulo = titulo;
         if (youtube) capituloFound.idYoutube = youtube;        
         if (req.files && req.files.pdf) {
+            await deleteFile(capituloFound.pdf)
             const { pdf } = req.files
             const ruta = `cursos/${cursoFound._id}/${capituloFound._id}/pdf/${pdf.name}`
             await upload(pdf, ruta, 'application/pdf')
@@ -231,7 +241,11 @@ export const eliminarCapitulo = async (req, res) => {
         const cursoFound = await Curso.findById(idcurso)
         if (!cursoFound) return res.status(404).send('No encontrado');
         const indexCapitulo = cursoFound.capitulos.findIndex((capitulo) => capitulo._id.toString() === idcapitulo)
-        if (!indexCapitulo) return res.status.send('Capitulo no encontrado')
+        const capituloFound = cursoFound.capitulos.find((capitulo) => capitulo._id.toString() === idcapitulo)
+        if (!indexCapitulo == -1) return res.status(404).send('Capitulo no encontrado');
+        if(capituloFound.pdf){
+            await deleteFile(capituloFound.pdf)
+        }
         cursoFound.capitulos.splice(indexCapitulo, 1);
         await cursoFound.save()
         return res.status(200).send('Eliminado correctamente')

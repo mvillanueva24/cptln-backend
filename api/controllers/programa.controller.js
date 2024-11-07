@@ -1,8 +1,9 @@
-import { getFileURL, upload } from '../aws/s3.js'
-import Categoria from '../models/categoria.model.js'
+import { getFileURL, upload, deleteFile } from '../aws/s3.js'
 import { Programa, Contenido } from '../models/programa.model.js'
-import mongoose from 'mongoose'
+import Categoria from '../models/categoria.model.js'
+import Noticia from '../models/noticia.model.js'
 
+// Programas
 export const programas = async (req, res) => {
     const { limit } = req.query
     try {
@@ -98,7 +99,7 @@ export const programasPorCategoria = async (req, res) => {
                     programa.imagenes.push(ruta)
                 }
             }
-            if(programa.imagenesEnlace) {
+            if (programa.imagenesEnlace) {
                 const imagenes = programa.imagenesEnlace
                 programa.imagenesEnlace = []
                 for (const imagen of imagenes) {
@@ -224,10 +225,12 @@ export const crearPrograma = async (req, res) => {
                 const { imagenesEnlace } = req.files
                 newPrograma.imagenes = null
                 newPrograma.contenido = null
-                for(const imagen of Array.isArray(imagenesEnlace) ? imagenesEnlace : [imagenesEnlace]) {
-                    const ruta = `programas/${titulo}/${imagen.name}`
+                let count = 0
+                for (const imagen of Array.isArray(imagenesEnlace) ? imagenesEnlace : [imagenesEnlace]) {
+                    const ruta = `programas/${newPrograma._id}/${count}/${imagen.name}`
                     await upload(imagen, ruta)
                     newPrograma.imagenesEnlace = ruta
+                    count++
                 }
             }
         } else {
@@ -237,7 +240,7 @@ export const crearPrograma = async (req, res) => {
                 const { imagenes } = req.files
                 let count = 0
                 for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
-                    const ruta = `programas/${titulo}/${count}${imagen.name}`
+                    const ruta = `programas/${newPrograma._id}/${count}/${imagen.name}`
                     await upload(imagen, ruta)
                     newPrograma.imagenes.push(ruta)
                     count++
@@ -264,12 +267,13 @@ export const agregarContenidoPrograma = async (req, res) => {
         })
         if (req.files && req.files.imagen) {
             const { imagen } = req.files
-            const ruta = `programas/${programaFound.titulo}/contenido/${newContenido._id}/${imagen.name}`
+            const ruta = `programas/${programaFound._id}/${newContenido._id}/${imagen.name}`
             await upload(imagen, ruta)
             newContenido.imagen = ruta
         }
         programaFound.contenido.push(newContenido)
         await programaFound.save()
+        return res.status(200).send('OK')
     } catch (error) {
         console.log(error);
         return res.status(500).send('Ocurrio un error')
@@ -279,8 +283,6 @@ export const agregarContenidoPrograma = async (req, res) => {
 export const editarPrograma = async (req, res) => {
     const { id } = req.params
     const { titulo, abreviatura, categoria_id, descripcion, color, enlace } = req.body
-    console.log(req.body);
-    console.log(req.files);
     try {
         const ProgramaFound = await Programa.findById(id)
         if (!ProgramaFound) return res.status(200).send('No encontrado');
@@ -292,24 +294,35 @@ export const editarPrograma = async (req, res) => {
         if (enlace === undefined) {
             ProgramaFound.enlace = null
             if (req.files && req.files.imagenes) {
+                const imagenesTmp = ProgramaFound.imagenes
+                for (const imagen of Array.isArray(imagenesTmp) ? imagenesTmp : [imagenesTmp]) {
+                    await deleteFile(imagen)
+                }
                 ProgramaFound.imagenes = []
                 const { imagenes } = req.files
                 ProgramaFound.enlace = null
                 ProgramaFound.imagenesEnlace = null
+                let count = 0
                 for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
-                    const ruta = `programas/${ProgramaFound.titulo}/portada/${imagen.name}`
+                    const ruta = `programas/${ProgramaFound._id}/${count}/${imagen.name}`
                     await upload(imagen, ruta)
                     ProgramaFound.imagenes.push(ruta)
+                    count++
                 }
             }
         } else {
             ProgramaFound.imagenes = []
-            ProgramaFound.enlace = enlace
+            if (enlace) ProgramaFound.enlace = enlace;
             if (req.files && req.files.imagenesEnlace) {
+                const imagenesTmp = ProgramaFound.imagenesEnlace
+                for (const imagen of Array.isArray(imagenesTmp) ? imagenesTmp : [imagenesTmp]) {
+                    await deleteFile(imagen)
+                }
                 ProgramaFound.imagenesEnlace = []
                 const { imagenesEnlace } = req.files
-                for(const imagen of  Array.isArray(imagenesEnlace) ? imagenesEnlace : [imagenesEnlace]){
-                    const ruta = `programas/${ProgramaFound.titulo}/${imagen.name}`
+                let count = 0
+                for (const imagen of Array.isArray(imagenesEnlace) ? imagenesEnlace : [imagenesEnlace]) {
+                    const ruta = `programas/${ProgramaFound._id}/${count}/${imagen.name}`
                     await upload(imagen, ruta)
                     ProgramaFound.imagenesEnlace.push(ruta)
                 }
@@ -335,7 +348,8 @@ export const editarContenidoDePrograma = async (req, res) => {
         if (parrafo) ContenidoFound.parrafo = parrafo;
         if (req.files && req.files.imagen) {
             const { imagen } = req.files
-            const ruta = `programas/${ProgramaFound.titulo}/contenido/${ContenidoFound._id}/${imagen.name}`
+            await deleteFile(ContenidoFound.imagen)
+            const ruta = `programas/${ProgramaFound._id}/${ContenidoFound._id}/${imagen.name}`
             await upload(imagen, ruta)
             ContenidoFound.imagen = ruta
         }
@@ -361,11 +375,22 @@ export const cambiarPosicionDelContenido = async (req, res) => {
 }
 
 export const borrarPrograma = async (req, res) => {
-    const { id } = req.query
+    const { idprograma } = req.query    
     try {
-        const ProgramaFound = await Programa.findById(id)
-        if (!ProgramaFound) return res.status(404).json('Devocional no encontrado')
-        await Programa.findByIdAndDelete(id)
+        const ProgramaFound = await Programa.findById(idprograma)
+        if (!ProgramaFound) return res.status(404).json('Programa no encontrado');
+        if (ProgramaFound.imagenes){
+            const imagenes = ProgramaFound.imagenes
+            for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
+                await deleteFile(imagen)
+            }
+        }
+        const noticiasFound = await Noticia.find({ programa_id: idprograma })
+        for (const noticia of Array.isArray(noticiasFound) ? noticiasFound : [noticiasFound]) {
+            noticia.programa_id = null
+            await noticia.save()
+        }
+        await Programa.findByIdAndDelete(idprograma)
         return res.status(200).json('Eliminado exitosamente')
     } catch (error) {
         console.log(error);
@@ -374,9 +399,23 @@ export const borrarPrograma = async (req, res) => {
 }
 
 export const borrarContenido = async (req, res) => {
-    const { idprograma, idcontenido } = req.params
-    const programaFound = await Programa.findById(idprograma)
-    if (!programaFound) return res.status(404).send('No encontrado');
+    try {
+        const { idprograma, idcontenido } = req.body
+        const programaFound = await Programa.findById(idprograma)
+        if (!programaFound) return res.status(404).send('No encontrado');
+        const contenidoFound = programaFound.contenido.find((contenido) => contenido._id.toString() === idcontenido)
+        if (!contenidoFound) return res.status(404).send('No encontrado');
+        const contenidFoundIndex = programaFound.contenido.findIndex((contenido) => contenido._id.toString() === idcontenido)
+        if (contenidoFound.imagen) {
+            await deleteFile(contenidoFound.imagen)
+        }
+        programaFound.contenido.splice(contenidFoundIndex, 1)
+        await programaFound.save()
+        return res.status(200).send('Eliminado correctamente')
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send('Ocurrio un error')
+    }
 }
 
 
@@ -403,7 +442,7 @@ export const programasCliente = async (req, res) => {
             if (programa.imagenesEnlace) {
                 const imagenes = programa.imagenesEnlace
                 programa.imagenes = []
-                for(const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]){
+                for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
                     const ruta = await getFileURL(imagen)
                     programa.imagenes.push(ruta)
                 }

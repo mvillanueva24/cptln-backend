@@ -56,8 +56,8 @@ export const crearCategoria = async (req, res) => {
         if (req.files && req.files.imagenes) {
             const { imagenes } = req.files
             let count = 0
-            for (const imagen of imagenes) {
-                const ruta = `categorias/${newCategoria.nombre}/${count}/${imagen.name}`
+            for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
+                const ruta = `categorias/${newCategoria._id}/${count}/${imagen.name}`
                 await upload(imagen, ruta)
                 newCategoria.imagenes.push(ruta)
                 count++
@@ -84,12 +84,13 @@ export const editarCategoria = async (req, res) => {
         if (indicePortada) categoriaFound.indicePortada = indicePortada;
         if (req.files && req.files.imagenes) {
             const { imagenes } = req.files
-            for (const imagen of categoriaFound.imagenes) {
+            const imagenesTmp = categoriaFound.imagenes
+            for (const imagen of Array.isArray(imagenesTmp) ? imagenesTmp : [imagenesTmp]) {
                 await deleteFile(imagen)
             }
             categoriaFound.imagenes = []
             let count = 0
-            for (const imagen of imagenes) {
+            for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]) {
                 const ruta = `categorias/${categoriaFound.nombre}/${count}/${imagen.name}`
                 await upload(imagen, ruta)
                 categoriaFound.imagenes.push(ruta)
@@ -133,14 +134,17 @@ export const buscarCategoriaPorNombre = async (req, res) => {
 }
 
 export const eliminarCategoria = async (req, res) => {
-    const { id } = req.body
+    const { id } = req.query
+    
     try {
         const categoriaFound = await Categoria.findById(id)
-        const imagenes = categoriaFound.imagenes
-        for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]){
-            await deleteFile(imagen)
-        }
         if (!categoriaFound) return res.status(404).send('No encontrado');
+        if(categoriaFound.imagenes) {
+            const imagenes = categoriaFound.imagenes
+            for (const imagen of Array.isArray(imagenes) ? imagenes : [imagenes]){
+                await deleteFile(imagen)
+            }
+        }
         const programas = await Programa.find({ categoria_id: id})
         if (programas.length > 0){
             for (const programa of programas){
