@@ -155,7 +155,6 @@ export const editarNoticias = async (req, res) => {
 export const noticiasPorPrograma = async (req, res) => {
     try {
         const { programa_id } = req.query
-        console.log(programa_id);
         const noticiasFound = await Noticia.find({ programa_id: programa_id })
         if (noticiasFound.length === 0) return res.status(400).send('No encontrado');
         for (const noticia of Array.isArray(noticiasFound) ? noticiasFound : [noticiasFound]) {

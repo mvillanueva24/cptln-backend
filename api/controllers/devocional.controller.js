@@ -112,9 +112,7 @@ export const crearDevocional = async (req, res) => {
 
 export const editarDevocional = async (req, res) => {
     const { id } = req.params
-    const { titulo, parrafo, versiculo, fecha } = req.body
-    console.log(req.files);
-    
+    const { titulo, parrafo, versiculo, fecha } = req.body   
     const DevocionalFound = await Devocional.findById(id)
     if (!DevocionalFound) return res.status(404).send('Devocional no encontrado')
     try {
