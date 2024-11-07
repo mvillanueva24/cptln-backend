@@ -64,7 +64,7 @@ export const login = async (req, res) => {
             expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // Expira en 1 día
             httpOnly: false,
             secure: true,
-            sameSite: 'strict',
+            sameSite: 'none',
             domain: process.env.FRONTEND_URL_COOKIE
         });
 
