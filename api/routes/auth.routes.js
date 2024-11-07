@@ -8,7 +8,7 @@ const router = Router()
 
 router.get('/admin/cptln/pe/users', authRequired, obtenerUsuarios)
 router.post('/admin/cptln/pe/users/logout', logout)
-router.post('/admin/cptln/pe/users/register', validateSchema(RegisterSchema), authRequired,register)
+router.post('/admin/cptln/pe/users/register', authRequired,register)
 router.post('/admin/cptln/pe/users/login', login)
 router.post('/admin/cptln/pe/users/:iduser/delete', authRequired, eliminarUsuario)
 router.post('/verifytoken', verifyToken)
