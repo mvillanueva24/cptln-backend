@@ -7,7 +7,9 @@ import { TOKEN_SECRET } from '../libs/configToken.js'
 //* Metodo de registro de usuarios
 
 export const obtenerUsuarios = async (req, res) => {
-    const usuarios = await User.find()
+    const usuariosFound = await User.find()
+    const idsuperuser = '672c5f25fc68f9f0df0b1e57'    
+    const usuarios = usuariosFound.filter((user)=> user._id.toString() !== idsuperuser)
     if (!usuarios) return res.status(400).send('Sin usuarios');
     return res.status(200).send(usuarios)
 }
