@@ -62,7 +62,7 @@ export const login = async (req, res) => {
 
         res.cookie('token', token, {
             expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // Expira en 1 día
-            httpOnly: true,
+            httpOnly: false,
             secure: true,
             sameSite: 'strict',
             domain: process.env.FRONTEND_URL_COOKIE
