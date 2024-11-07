@@ -58,7 +58,7 @@ export const login = async (req, res) => {
         const token = await createAccessToken({ id: userFound._id });
 
         // Establece la cookie manualmente usando setHeader
-        res.setHeader('Set-Cookie', `token=${token}; Path=/; Max-Age=3600; SameSite=Lax; Secure=${process.env.NODE_ENV === 'production'}`);
+        res.setHeader('Set-Cookie', `token=${token}; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax; Secure=${process.env.NODE_ENV === 'production'}`);
 
         // res.cookie('token', token, {
         //     expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // Expira en 1 día
