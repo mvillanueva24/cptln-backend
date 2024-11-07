@@ -65,7 +65,7 @@ export const login = async (req, res) => {
             httpOnly: true,
             secure: true,
             sameSite: 'strict',
-            domain: process.env.FRONTEND_URL
+            domain: process.env.FRONTEND_URL_COOKIE
         });
 
         // Respuesta para el frontend
