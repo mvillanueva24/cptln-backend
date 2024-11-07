@@ -82,8 +82,11 @@ export const login = async (req, res) => {
 
 export const logout = (req, res) => {
     res.cookie('token', '', {
-        expires: new Date(0)
-    })
+        expires: new Date(0), // Esto expira la cookie inmediatamente
+        httpOnly: true,       // Mantener si deseas que la cookie sea accesible solo por el servidor
+        secure: true,         // Requerido si usas HTTPS y SameSite=None
+        sameSite: 'None'      // Asegura que funcione en contextos de origen cruzado
+    });
     return res.sendStatus(200)
 }
 
