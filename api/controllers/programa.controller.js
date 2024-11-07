@@ -101,7 +101,7 @@ export const programasPorCategoria = async (req, res) => {
             }
             if (programa.imagenesEnlace) {
                 const imagenes = programa.imagenesEnlace
-                programa.imagenesEnlace = []
+                programa.imagenes = []
                 for (const imagen of imagenes) {
                     const ruta = await getFileURL(imagen)
                     programa.imagenes.push(ruta)
