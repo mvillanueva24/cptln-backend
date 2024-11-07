@@ -1,6 +1,6 @@
 import { createAccessToken } from "../libs/jwt.js"
-import User from "../models/user.model.js"
-import bcrypt from 'bcryptjs'
+import User from "../models/user.model.js" 
+import bcrypt from 'bcryptjs' 
 import jwt from 'jsonwebtoken'
 import { TOKEN_SECRET } from '../libs/configToken.js'
 
@@ -8,8 +8,8 @@ import { TOKEN_SECRET } from '../libs/configToken.js'
 
 export const obtenerUsuarios = async (req, res) => {
     const usuariosFound = await User.find()
-    const idsuperuser = '672c5f25fc68f9f0df0b1e57'
-    const usuarios = usuariosFound.filter((user) => user._id.toString() !== idsuperuser)
+    const idsuperuser = '672c5f25fc68f9f0df0b1e57'    
+    const usuarios = usuariosFound.filter((user)=> user._id.toString() !== idsuperuser)
     if (!usuarios) return res.status(400).send('Sin usuarios');
     return res.status(200).send(usuarios)
 }
@@ -60,14 +60,6 @@ export const login = async (req, res) => {
         // Establece la cookie manualmente usando setHeader
         res.setHeader('Set-Cookie', `token=${token}; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax; Secure=${process.env.NODE_ENV === 'production'}`);
 
-        // res.cookie('token', token, {
-        //     expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // Expira en 1 día
-        //     httpOnly: false,
-        //     secure: true,
-        //     sameSite: 'none',
-        //     domain: process.env.FRONTEND_URL_COOKIE
-        // });
-
         // Respuesta para el frontend
         return res.status(200).json({
             id: userFound._id,
@@ -91,7 +83,7 @@ export const logout = (req, res) => {
     return res.sendStatus(200)
 }
 
-export const eliminarUsuario = async (req, res) => {
+export const eliminarUsuario = async(req, res) => {
     try {
         const { iduser } = req.params
         await User.findByIdAndDelete(iduser)
@@ -104,10 +96,8 @@ export const eliminarUsuario = async (req, res) => {
 
 export const verifyToken = async (req, res) => {
     const { token } = req.cookies;
-    console.log(token);
-
     if (!token) return res.send(false);
-
+    
     jwt.verify(token, TOKEN_SECRET, async (error, user) => {
 
         if (error) return res.sendStatus(400)
