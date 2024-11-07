@@ -59,9 +59,10 @@ export const login = async (req, res) => {
 
         // Establece la cookie manualmente usando setHeader
         res.cookie("token", token, {
-            httpOnly: process.env.NODE_ENV !== "development",
-            secure: true,
-            sameSite: "none",
+            httpOnly: true,
+            secure: true, // necesario para SameSite=None
+            sameSite: "None", // permite el envío en solicitudes de origen cruzado
+            maxAge: 3600000, // tiempo de expiración en milisegundos
         });
         // Respuesta para el frontend
         return res.status(200).json({
