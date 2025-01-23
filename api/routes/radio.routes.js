@@ -22,6 +22,9 @@ router.get('/client/radio/:idseccion/pagination', obtenerSeccionPagination)
 router.get('/admin/radio', authRequired, obtenerDatosRadio)
 router.post('/admin/radio', authRequired, actualizarDatosRadio)
 
+// router.get('/admin/radio', obtenerDatosRadio)
+// router.post('/admin/radio', actualizarDatosRadio)
+
 // Secciones //
 router.get('/admin/radio/secciones', authRequired, obtenerSecciones)
 router.get('/admin/radio/secciones/:idseccion', authRequired, obtenerSeccion)
@@ -30,6 +33,12 @@ router.post('/admin/radio/secciones', authRequired, agregarSeccion)
 router.post('/admin/radio/secciones/delete', authRequired, eliminarSeccion)
 router.post('/admin/radio/secciones/:idseccion', authRequired, modificarSeccion)
 
+// router.get('/admin/radio/secciones', obtenerSecciones)
+// router.get('/admin/radio/secciones/:idseccion', obtenerSeccion)
+// router.get('/admin/radio/secciones/:idseccion/pagination', obtenerSeccionPagination)
+// router.post('/admin/radio/secciones', agregarSeccion)
+// router.post('/admin/radio/secciones/delete', eliminarSeccion)
+// router.post('/admin/radio/secciones/:idseccion', modificarSeccion)
 
 // Contenido //
 router.get('/admin/radio/secciones/:idseccion/contenido', authRequired, obtenerContenidos)
@@ -37,5 +46,11 @@ router.get('/admin/radio/secciones/:idseccion/contenido/:idcontenido', authRequi
 router.post('/admin/radio/secciones/:idseccion/contenido', authRequired, agregarContenido)
 router.post('/admin/radio/secciones/:idseccion/contenido/delete', authRequired, eliminarContenido)
 router.post('/admin/radio/secciones/:idseccion/contenido/:idcontenido', authRequired, modificarContenido)
+
+// router.get('/admin/radio/secciones/:idseccion/contenido', obtenerContenidos)
+// router.get('/admin/radio/secciones/:idseccion/contenido/:idcontenido', obtenerContenido)
+// router.post('/admin/radio/secciones/:idseccion/contenido', agregarContenido)
+// router.post('/admin/radio/secciones/:idseccion/contenido/delete', eliminarContenido)
+// router.post('/admin/radio/secciones/:idseccion/contenido/:idcontenido', modificarContenido)
 
 export default router

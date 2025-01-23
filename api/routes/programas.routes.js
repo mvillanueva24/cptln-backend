@@ -40,6 +40,13 @@ router.post('/admin/programa', authRequired, crearPrograma)
 router.post('/admin/programa/delete', authRequired, borrarPrograma)
 router.post('/admin/programa/editar/:id', authRequired, editarPrograma)
 
+// router.get('/admin/programa', programas)
+// router.get('/admin/programa/pagination', programasPagination)
+// router.get('/admin/programa/:id', buscarPrograma)
+// router.post('/admin/programa', crearPrograma)
+// router.post('/admin/programa/delete', borrarPrograma)
+// router.post('/admin/programa/editar/:id', editarPrograma)
+
 // Contenido //
 router.get('/admin/programa/contenido/pagination/:id', authRequired, buscarContenidoProgramaPagination)
 router.get('/admin/programa/contenido/:idprograma/:id', authRequired, buscarContenidoEspecifoPrograma)
@@ -47,5 +54,12 @@ router.post('/admin/programa/contenido/ordenar/:id', authRequired, cambiarPosici
 router.post('/admin/programa/contenido/delete', authRequired, borrarContenido)
 router.post('/admin/programa/contenido/:id', authRequired, agregarContenidoPrograma)
 router.post('/admin/programa/contenido/:idprograma/:id', authRequired, editarContenidoDePrograma)
+
+// router.get('/admin/programa/contenido/pagination/:id', buscarContenidoProgramaPagination)
+// router.get('/admin/programa/contenido/:idprograma/:id', buscarContenidoEspecifoPrograma)
+// router.post('/admin/programa/contenido/ordenar/:id', cambiarPosicionDelContenido)
+// router.post('/admin/programa/contenido/delete', borrarContenido)
+// router.post('/admin/programa/contenido/:id', agregarContenidoPrograma)
+// router.post('/admin/programa/contenido/:idprograma/:id', editarContenidoDePrograma)
 
 export default router

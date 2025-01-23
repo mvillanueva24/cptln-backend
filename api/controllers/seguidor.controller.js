@@ -100,7 +100,9 @@ export const solicitudEbooks = async(req, res) => {
 }
 
 export const solicitudCursos = async(req, res) => {
-    const { nombres, apellidos, correo, motivo} = req.body    
+    const { nombres, apellidos, correo, motivo} = req.body
+    console.log(req.body);
+    
     await new Seguidor({
         nombres: nombres,
         apellidos: apellidos,

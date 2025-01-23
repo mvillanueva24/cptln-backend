@@ -208,6 +208,7 @@ export const editarCapituloCurso = async (req, res) => {
             const { pdf } = req.files
             const ruta = `cursos/${cursoFound._id}/${capituloFound._id}/pdf/${pdf.name}`
             await upload(pdf, ruta, 'application/pdf')
+            capituloFound.pdf = ruta
         }
         await cursoFound.save()
         return res.status(200).send('Modificado correctamente')

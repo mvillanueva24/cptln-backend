@@ -20,4 +20,11 @@ router.post('/admin/noticias', authRequired, crearNoticias)
 router.post('/admin/noticias/delete', authRequired, eliminarNoticias)
 router.post('/admin/noticias/:id', authRequired, editarNoticias)
 
+// router.get('/admin/noticias', noticias)
+// router.get('/admin/noticias/pagination', noticiasPagination)
+// router.get('/admin/noticias/programa', noticiasPorPrograma)
+// router.get('/admin/noticias/:id', buscarNoticias)
+// router.post('/admin/noticias', crearNoticias)
+// router.post('/admin/noticias/delete', eliminarNoticias)
+// router.post('/admin/noticias/:id', editarNoticias)
 export default router

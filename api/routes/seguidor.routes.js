@@ -15,4 +15,9 @@ router.get('/solicitud-cursos/pagination', authRequired, obtenerSolicitudesCurso
 router.get('/solicitud-ebooks/pagination', authRequired, obtenerSolicitudesEbooks)
 router.get('/solicitud-oraciones/pagination', authRequired, obtenerSolicitudesOraciones)
 router.get('/solicitud-contactanos/pagination', authRequired, obtenerSolicitudesContactanos)
+
+// router.get('/solicitud-cursos/pagination', obtenerSolicitudesCursos)
+// router.get('/solicitud-ebooks/pagination', obtenerSolicitudesEbooks)
+// router.get('/solicitud-oraciones/pagination', obtenerSolicitudesOraciones)
+// router.get('/solicitud-contactanos/pagination', obtenerSolicitudesContactanos)
 export default router

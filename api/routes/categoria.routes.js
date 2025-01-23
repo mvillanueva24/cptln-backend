@@ -17,4 +17,11 @@ router.post('/admin/categorias', authRequired, crearCategoria)
 router.post('/admin/categorias/delete', authRequired, eliminarCategoria)
 router.post('/admin/categorias/:id', authRequired, editarCategoria)
 
+// router.get('/admin/categorias', categorias)
+// router.get('/admin/categorias/pagination', categoriasPagination)
+// router.get('/admin/categorias/:id', buscarCategoria)
+// router.post('/admin/categorias', crearCategoria)
+// router.post('/admin/categorias/delete', eliminarCategoria)
+// router.post('/admin/categorias/:id', editarCategoria)
+
 export default router

@@ -280,7 +280,13 @@ export const obtenerContenidos = async (req, res) => {
     const { idseccion } = req.params
     try {
         const seccionFound = radio.secciones.find((seccion) => seccion.id.toString() === idseccion)
-        return res.status(200).send(seccionFound.contenidos)
+        let contenidos = seccionFound.contenidos
+        contenidos = contenidos.sort((a, b) => {
+            const fechaA = new Date(a.fecha || a.createdAt); // Asegúrate de que el campo sea el correcto
+            const fechaB = new Date(b.fecha || b.createdAt); // Asegúrate de que el campo sea el correcto
+            return fechaB - fechaA; // Ordena de más reciente a más antiguo
+        })
+        return res.status(200).send(contenidos)
     } catch (error) {
         console.log(error);
         return res.status(500).send('Ocurrio un error')

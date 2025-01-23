@@ -38,8 +38,33 @@ export const devocionalesPagination = async (req, res) => {
 export const devocionalHoy = async (req, res) => {
     const date = new Date()
     const hoy = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+    const now = new Date();
+    const inicioHoyUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+    const finHoyUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
+
     try {
-        const devocional = await Devocional.findOne({ fecha: { $lte: hoy } }).sort({ fecha: -1 })
+        // Primero intentamos encontrar el devocional de hoy
+        let devocional = await Devocional.findOne({
+            fecha: {
+                $gte: inicioHoyUTC,
+                $lte: finHoyUTC
+            }
+        });
+
+        // Si no hay devocional de hoy, buscamos el más reciente anterior a hoy
+        if (!devocional) {
+            devocional = await Devocional.findOne({
+                fecha: { $lt: inicioHoyUTC }
+            }).sort({ fecha: -1 });
+        }
+
+        // Si no hay devocional reciente, buscamos uno de días anteriores
+        if (!devocional) {
+            devocional = await Devocional.findOne({
+                fecha: { $lt: inicioHoyUTC }
+            }).sort({ fecha: -1 });
+        }
+
         if (!devocional) return res.status(404).send('No se encontro el devocional de hoy');
         const { audioURL, imagenURL } = devocional
         if (audioURL) {
@@ -55,7 +80,6 @@ export const devocionalHoy = async (req, res) => {
         console.log(error);
         return res.status(500).send('Ocurrio un error')
     }
-
 }
 
 // Buscar devocional especifico
@@ -82,31 +106,70 @@ export const devocionalFound = async (req, res) => {
 
 // Crear devocional
 export const crearDevocional = async (req, res) => {
-    const { titulo, parrafo, versiculo, fecha } = req.body
+    const { titulo, parrafo, versiculo, fecha } = req.body;
+
     try {
+        // Primero verificamos si ya existe un devocional para esta fecha
+        const fechaInicio = new Date(new Date(fecha).setHours(0, 0, 0, 0));
+        const fechaFin = new Date(new Date(fecha).setHours(23, 59, 59, 999));
+
+        const devocionalExistente = await Devocional.findOne({
+            fecha: {
+                $gte: fechaInicio,
+                $lte: fechaFin
+            }
+        });
+
+        if (devocionalExistente) {
+            return res.status(400).json({
+                error: {
+                    fecha: 'Ya existe un devocional para esta fecha'
+                }
+            });
+        }
+
+        // Si la fecha es válida, procedemos a crear el devocional
         const newDevocional = new Devocional({
-            titulo: titulo,
-            fecha: fecha,
-            parrafo: parrafo,
-            versiculo: versiculo
-        })
+            titulo,
+            fecha,
+            parrafo,
+            versiculo
+        });
+
+        // Procesamos los archivos solo si pasó la validación de fecha
         if (req.files) {
             if (req.files.imagen) {
-                const imagen = req.files.imagen
-                newDevocional.imagenURL = `devocionales/${newDevocional._id}/imagen/${imagen.name}`
-                await upload(imagen, newDevocional.imagenURL)
+                const imagen = req.files.imagen;
+                newDevocional.imagenURL = `devocionales/${newDevocional._id}/imagen/${imagen.name}`;
+                await upload(imagen, newDevocional.imagenURL);
             }
             if (req.files.audio) {
-                const audio = req.files.audio
-                newDevocional.audioURL = `devocionales/${newDevocional._id}/audio/${audio.name}`
-                await upload(audio, newDevocional.audioURL)
+                const audio = req.files.audio;
+                newDevocional.audioURL = `devocionales/${newDevocional._id}/audio/${audio.name}`;
+                await upload(audio, newDevocional.audioURL);
             }
         }
-        await newDevocional.save()
-        res.status(200).send('Devocional creado exitosamente')
+
+        await newDevocional.save();
+        res.status(200).send('Devocional creado exitosamente');
+
     } catch (error) {
-        console.log(error)
-        return res.status(500).send('Ocurrio un error')
+        // Error de validación de Mongoose
+        if (error.name === 'ValidationError') {
+            const errors = {};
+            Object.keys(error.errors).forEach(key => {
+                errors[key] = error.errors[key].message;
+            });
+            return res.status(400).json({ error: errors });
+        }
+
+        // Error general del servidor
+        console.log(error);
+        return res.status(500).json({
+            error: {
+                general: 'Ocurrió un error al crear el devocional'
+            }
+        });
     }
 }
 

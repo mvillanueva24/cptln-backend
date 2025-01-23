@@ -348,7 +348,9 @@ export const editarContenidoDePrograma = async (req, res) => {
         if (parrafo) ContenidoFound.parrafo = parrafo;
         if (req.files && req.files.imagen) {
             const { imagen } = req.files
-            await deleteFile(ContenidoFound.imagen)
+            if (ContenidoFound.imagen) {
+                await deleteFile(ContenidoFound.imagen)
+            }
             const ruta = `programas/${ProgramaFound._id}/${ContenidoFound._id}/${imagen.name}`
             await upload(imagen, ruta)
             ContenidoFound.imagen = ruta

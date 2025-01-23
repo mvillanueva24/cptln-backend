@@ -18,4 +18,11 @@ router.post('/admin/devocionales', authRequired, crearDevocional)
 router.post('/admin/devocionales/delete', authRequired, eliminarDevocional)
 router.post('/admin/devocionales/:id',authRequired, editarDevocional)
 
+// router.get('/admin/devocionales', devocionales)
+// router.get('/admin/devocionales/pagination', devocionalesPagination)
+// router.get('/admin/devocionales/:id', devocionalFound)
+// router.post('/admin/devocionales', crearDevocional)
+// router.post('/admin/devocionales/delete', eliminarDevocional)
+// router.post('/admin/devocionales/:id', editarDevocional)
+
 export default router

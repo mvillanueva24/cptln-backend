@@ -15,4 +15,10 @@ router.post('/admin/eventos', authRequired, crearEvento)
 router.post('/admin/eventos/delete', authRequired, eliminarEvento)
 router.post('/admin/eventos/:id', authRequired, editarEvento)
 
+// router.get('/admin/eventos', eventos)
+// router.get('/admin/eventos/pagination', eventosPagination)
+// router.get('/admin/eventos/:id', buscarEvento)
+// router.post('/admin/eventos', crearEvento)
+// router.post('/admin/eventos/delete', eliminarEvento)
+// router.post('/admin/eventos/:id', editarEvento)
 export default router
